@@ -1,5 +1,9 @@
-<<<<<<< HEAD
-(Your changes)
-=======
-(Changes from main branch)
->>>>>>> main
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# System files
+.DS_Store
+*.log
