@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory Management | Sweet Custom</title>
+
+    <link rel="stylesheet" href="employee-style.css">
+</head>
+
+<body>
+
+    <!-- ======================================
+         SIDEBAR
+    ======================================= -->
+
+    <aside class="sidebar">
+
+        <h2>🍰 Sweet Custom</h2>
+        <p class="sidebar-label">EMPLOYEE PANEL</p>
+
+        <a href="employee.html" class="nav-link">
+            🏠 Dashboard
+        </a>
+
+        <a href="employees.html" class="nav-link">
+            👩‍💼 Employees
+        </a>
+
+        <a href="inventory.html" class="nav-link active">
+            📦 Inventory
+        </a>
+
+        <button
+            type="button"
+            class="logout-btn"
+            onclick="logout()">
+            ↪ Logout
+        </button>
+
+    </aside>
+
+
+    <!-- ======================================
+         MAIN CONTENT
+    ======================================= -->
+
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div>
+                <h1>Inventory Management</h1>
+                <p>Manage cake ingredients and supplies.</p>
+            </div>
+
+            <div class="profile">
+                Welcome,
+                <strong id="employeeName">Employee</strong>
+            </div>
+
+        </header>
+
+
+        <!-- ======================================
+             INVENTORY STATISTICS
+        ======================================= -->
+
+        <section class="stats-container">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">📦</div>
+
+                <h3>Total Items</h3>
+
+                <h1 id="totalItems">0</h1>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">⚠️</div>
+
+                <h3>Low Stock</h3>
+
+                <h1 id="lowStockItems">0</h1>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================
+             ADD / UPDATE INVENTORY FORM
+        ======================================= -->
+
+        <section class="form-panel">
+
+            <h2 id="formTitle">Add Inventory Item</h2>
+
+            <form id="inventoryForm">
+
+                <input type="hidden" id="inventoryId">
+
+                <div class="form-grid">
+
+                    <!-- ITEM NAME -->
+
+                    <div class="form-group">
+
+                        <label for="itemName">Item Name</label>
+
+                        <input
+                            type="text"
+                            id="itemName"
+                            placeholder="e.g. Cake Flour"
+                            required>
+
+                    </div>
+
+
+                    <!-- QUANTITY -->
+
+                    <div class="form-group">
+
+                        <label for="quantity">Quantity</label>
+
+                        <input
+                            type="number"
+                            id="quantity"
+                            min="0"
+                            step="0.01"
+                            placeholder="Enter quantity"
+                            required>
+
+                    </div>
+
+
+                    <!-- UNIT -->
+
+                    <div class="form-group">
+
+                        <label for="unit">Unit</label>
+
+                        <input
+                            type="text"
+                            id="unit"
+                            placeholder="e.g. kg, pcs, liters"
+                            required>
+
+                    </div>
+
+
+                    <!-- REORDER LEVEL -->
+
+                    <div class="form-group">
+
+                        <label for="reorderLevel">Reorder Level</label>
+
+                        <input
+                            type="number"
+                            id="reorderLevel"
+                            min="0"
+                            step="0.01"
+                            value="5"
+                            required>
+
+                    </div>
+
+
+                    <!-- UNIT COST -->
+
+                    <div class="form-group">
+
+                        <label for="unitCost">Unit Cost (₱)</label>
+
+                        <input
+                            type="number"
+                            id="unitCost"
+                            min="0"
+                            step="0.01"
+                            value="0"
+                            required>
+
+                    </div>
+
+
+                    <!-- SUPPLIER -->
+
+                    <div class="form-group">
+
+                        <label for="supplierID">
+                            Supplier ID (Optional)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="supplierID"
+                            min="1"
+                            placeholder="Enter supplier ID">
+
+                    </div>
+
+
+                    <!-- ASSIGNED EMPLOYEE -->
+
+                    <div class="form-group">
+
+                        <label for="assignedEmployee">
+                            Employee ID (Optional)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="assignedEmployee"
+                            min="1"
+                            placeholder="Enter employee ID">
+
+                    </div>
+
+                </div>
+
+
+                <!-- FORM BUTTONS -->
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="primary-btn"
+                        id="saveBtn">
+                        Add Item
+                    </button>
+
+                    <button
+                        type="button"
+                        class="cancel-btn"
+                        id="cancelInventory">
+                        Clear
+                    </button>
+
+                </div>
+
+                <p class="message" id="formMessage"></p>
+
+            </form>
+
+        </section>
+
+
+        <!-- ======================================
+             INVENTORY SEARCH
+        ======================================= -->
+
+        <div class="toolbar">
+
+            <h2>Inventory Records</h2>
+
+            <input
+                type="search"
+                class="search-input"
+                id="inventorySearch"
+                placeholder="Search inventory...">
+
+        </div>
+
+
+        <!-- ======================================
+             INVENTORY FILTERS
+        ======================================= -->
+
+        <div class="form-actions">
+
+            <button
+                type="button"
+                class="primary-btn"
+                id="showAllStock">
+                All Inventory
+            </button>
+
+            <button
+                type="button"
+                class="cancel-btn"
+                id="showLowStock">
+                Low Stock Only
+            </button>
+
+        </div>
+
+
+        <!-- ======================================
+             INVENTORY TABLE
+        ======================================= -->
+
+        <section class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Reorder Level</th>
+                        <th>Unit Cost</th>
+                        <th>Supplier</th>
+                        <th>Employee</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="inventoryTableBody">
+
+                    <tr>
+                        <td colspan="10">
+                            Loading inventory...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+
+    <!-- ======================================
+         EMPLOYEE INFORMATION AND LOGOUT
+    ======================================= -->
+
+    <script>
+
+        // DISPLAY EMPLOYEE NAME
+
+        document.getElementById('employeeName').textContent =
+            sessionStorage.getItem('employeeName') || 'Employee';
+
+
+        // LOGOUT FUNCTION
+
+        function logout() {
+
+            const confirmed = confirm(
+                'Are you sure you want to log out?'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            sessionStorage.removeItem('employeeToken');
+            sessionStorage.removeItem('employeeName');
+            sessionStorage.removeItem('token');
+
+            document.querySelector('.sidebar').style.display = 'none';
+
+            document.querySelector('.main-content').innerHTML = `
+                <section class="welcome-banner">
+                    <h2>You have logged out.</h2>
+                    <p>Your employee session has been cleared.</p>
+                </section>
+            `;
+
+        }
+
+    </script>
+
+
+    <!-- ======================================
+         INVENTORY JAVASCRIPT
+    ======================================= -->
+
+    <script src="js/inventory.js"></script>
+
+</body>
+</html>
