@@ -6,7 +6,9 @@
 let currentDesigns = [];
 let availableSizes = [];
 let availableFlavors = [];
-let cart = [];
+let cart = JSON.parse(
+    sessionStorage.getItem('sweetCustomCart') || '[]'
+);
 let activeCake = null;
 
 
@@ -15,9 +17,15 @@ let activeCake = null;
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+
+    updateCartBadge();
+
     await fetchSizesAndFlavors();
+
     await fetchCakeDesigns();
+
 });
+
 
 
 // ==========================================
@@ -593,16 +601,30 @@ function closeCustomizerModal() {
 // ADD ITEM TO CART
 // ==========================================
 
+
 function addToCart() {
 
     if (!activeCake) return;
 
     const sizeElem = document.getElementById('sizeSelect');
-
     const flavorElem = document.getElementById('flavorSelect');
 
+    const selectedSize = availableSizes.find(
+        s => s.name === sizeElem.value
+    );
+
+    const selectedFlavor = availableFlavors.find(
+        f => f.name === flavorElem.value
+    );
+
+    if (!selectedSize || !selectedFlavor) {
+        alert('Please select a valid size and flavor.');
+        return;
+    }
+
     const finalPrice = parseFloat(
-        document.getElementById('dynamicPrice').innerText.replace('₱', '')
+        document.getElementById('dynamicPrice')
+            .innerText.replace('₱', '')
     );
 
     const selectedDesign = {
@@ -621,26 +643,37 @@ function addToCart() {
 
     cart.push({
 
+        designId: Number(activeCake.id),
+
         title: activeCake.title,
 
-        size: sizeElem.value,
+        flavorId: Number(selectedFlavor.id),
+        flavor: selectedFlavor.name,
 
-        flavor: flavorElem.value,
+        sizeId: Number(selectedSize.id),
+        size: selectedSize.name,
 
         design: selectedDesign,
 
-        price: finalPrice
+        price: finalPrice,
+
+        quantity: 1
 
     });
+
+    sessionStorage.setItem(
+        'sweetCustomCart',
+        JSON.stringify(cart)
+    );
 
     updateCartBadge();
 
     closeCustomizerModal();
 
     alert('Cake added to cart!');
-}
 
-
+} 
+ 
 // ==========================================
 // TOGGLE CART MODAL
 // ==========================================
@@ -768,21 +801,31 @@ function filterCategory(cat) {
 // CHECKOUT ORDER
 // ==========================================
 
+
 function checkoutOrder() {
 
     if (cart.length === 0) {
-
-        return alert('Your cart is empty!');
-
+        alert('Your cart is empty!');
+        return;
     }
 
-    alert('Thank you for your order!');
+    const customerName =
+        sessionStorage.getItem('customerName');
 
-    cart = [];
+    const customerPhone =
+        sessionStorage.getItem('customerPhone');
 
-    updateCartBadge();
+    if (!customerName || !customerPhone) {
+        alert('Please complete the customer information first.');
+        return;
+    }
 
-    renderCartItems();
+    sessionStorage.setItem(
+        'sweetCustomCart',
+        JSON.stringify(cart)
+    );
 
-    toggleCartModal();
+    window.location.href = 'checkout.html';
+
 }
+
