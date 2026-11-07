@@ -12,13 +12,12 @@ console.log('Employee DB configuration:', {
     passwordLoaded: !!process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 });
-
 const employeeDb = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Ilovefemboyz12345',
+    password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME || 'cake_ordering_system',
-    port: Number(process.env.DB_PORT || 12067),
+    port: 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
