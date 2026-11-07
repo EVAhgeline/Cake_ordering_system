@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Employee Dashboard | Sweet Custom</title>
+
+    <link rel="stylesheet" href="employee-style.css">
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <h2>🍰 Sweet Custom</h2>
+        <p class="sidebar-label">EMPLOYEE PANEL</p>
+
+        <a href="employee.html" class="nav-link active">
+            🏠 Dashboard
+        </a>
+
+        <a href="employees.html" class="nav-link">
+            👩‍💼 Employees
+        </a>
+
+        <a href="inventory.html" class="nav-link">
+            📦 Inventory
+        </a>
+
+        <button type="button" class="logout-btn" onclick="logout()">
+            ↪ Logout
+        </button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Employee and Inventory Management</p>
+            </div>
+
+            <div class="profile">
+                Welcome,
+                <strong id="employeeName">Employee</strong>
+            </div>
+        </header>
+
+        <!-- WELCOME BANNER -->
+        <section class="welcome-banner">
+            <h2>Welcome to Sweet Custom!</h2>
+            <p>
+                Manage your employees and monitor your cake supplies here.
+            </p>
+        </section>
+
+        <!-- DASHBOARD STATISTICS -->
+        <section class="stats-container">
+
+            <div class="stat-card">
+                <div class="stat-icon">👩‍💼</div>
+                <h3>Total Employees</h3>
+                <h1 id="employeeCount">0</h1>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <h3>Inventory Items</h3>
+                <h1 id="inventoryCount">0</h1>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <h3>Low Stock Items</h3>
+                <h1 id="lowStockCount">0</h1>
+            </div>
+
+        </section>
+
+        <!-- QUICK ACCESS -->
+        <section class="quick-links">
+            <h2>Quick Access</h2>
+
+            <div class="quick-grid">
+
+                <a href="employees.html" class="quick-card">
+                    <span>👩‍💼</span>
+                    <h3>Employee Management</h3>
+                    <p>View and manage employee records.</p>
+                    <strong>Open Employees →</strong>
+                </a>
+
+                <a href="inventory.html" class="quick-card">
+                    <span>📦</span>
+                    <h3>Inventory Management</h3>
+                    <p>Monitor ingredients and supplies.</p>
+                    <strong>Open Inventory →</strong>
+                </a>
+
+            </div>
+        </section>
+
+        <p id="dashboardMessage"></p>
+
+    </main>
+
+    <!-- DASHBOARD JAVASCRIPT -->
+    <script>
+        const API_URL = 'http://localhost:12067/api';
+
+        // ==========================================
+        // EMPLOYEE INFORMATION
+        // ==========================================
+
+        document.getElementById('employeeName').textContent =
+            sessionStorage.getItem('employeeName') || 'Employee';
+
+
+        // ==========================================
+        // API RESPONSE HELPER
+        // ==========================================
+
+        async function getAPIData(url) {
+            const response = await fetch(url);
+
+            const text = await response.text();
+
+            let result;
+
+            try {
+                result = text ? JSON.parse(text) : {};
+            } catch {
+                throw new Error('Invalid response from server.');
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || 'Unable to load dashboard data.'
+                );
+            }
+
+            return Array.isArray(result)
+                ? result
+                : result.data || [];
+        }
+
+
+        // ==========================================
+        // LOAD DASHBOARD INFORMATION
+        // ==========================================
+
+        async function loadDashboard() {
+            const message =
+                document.getElementById('dashboardMessage');
+
+            try {
+                const [
+                    employees,
+                    inventory,
+                    lowStock
+                ] = await Promise.all([
+                    getAPIData(`${API_URL}/employees`),
+                    getAPIData(`${API_URL}/inventory`),
+                    getAPIData(`${API_URL}/inventory-low-stock`)
+                ]);
+
+                document.getElementById('employeeCount').textContent =
+                    employees.length;
+
+                document.getElementById('inventoryCount').textContent =
+                    inventory.length;
+
+                document.getElementById('lowStockCount').textContent =
+                    lowStock.length;
+
+                message.textContent = '';
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+
+                message.textContent =
+                    'Unable to load dashboard information: ' +
+                    error.message;
+            }
+        }
+
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+
+        function logout() {
+            const confirmed = confirm(
+                'Are you sure you want to log out?'
+            );
+
+            if (!confirmed) return;
+
+            sessionStorage.removeItem('employeeToken');
+            sessionStorage.removeItem('employeeName');
+            sessionStorage.removeItem('token');
+
+            // Show logged-out message.
+            // A separate login page is needed for redirection.
+            document.querySelector('.main-content').innerHTML = `
+                <section class="welcome-banner">
+                    <h2>You have logged out.</h2>
+                    <p>Your employee session has been cleared.</p>
+                </section>
+            `;
+
+            document.querySelector('.sidebar').style.display = 'none';
+        }
+
+
+        // ==========================================
+        // INITIALIZE DASHBOARD
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+    </script>
+
+</body>
+</html>
