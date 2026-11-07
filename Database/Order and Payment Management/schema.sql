@@ -97,3 +97,13 @@ CREATE TABLE Payment (
     CONSTRAINT chk_total_amount CHECK (total_amount >= 0),
     CONSTRAINT chk_downpayment CHECK (downpayment >= 0)
 );
+
+CREATE TABLE Employee (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    role VARCHAR(50) DEFAULT 'Baker'
+);
+
+ALTER TABLE Employee
+ADD COLUMN email VARCHAR(100) NOT NULL UNIQUE,
+ADD COLUMN password VARCHAR(255) NOT NULL;
