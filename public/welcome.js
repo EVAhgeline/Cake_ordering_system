@@ -59,24 +59,20 @@ document.getElementById('customerForm')
             return;
         }
 
-        // Store customer information for this browser session
+        // Store customer information
         sessionStorage.setItem('customerName', name);
         sessionStorage.setItem('customerPhone', phone);
 
-        // Close popup and display the cake gallery
+        // Close popup
         hideAllWelcomeModals();
 
         alert('Welcome, ' + name + '! Enjoy choosing your cake.');
-
     });
 
 
 // ==========================================
 // EMPLOYEE LOGIN
 // ==========================================
-
-// This requires a real backend login endpoint.
-// Employee passwords must be verified by the server.
 
 document.getElementById('employeeLoginForm')
     .addEventListener('submit', async function(event) {
@@ -89,38 +85,61 @@ document.getElementById('employeeLoginForm')
         const password = document.getElementById('employeePassword')
             .value;
 
+        if (!employeeID || !password) {
+            alert('Please enter your Employee ID and password.');
+            return;
+        }
+
         try {
-            const response = await fetch(
-                'http://localhost:12067/api/auth/login',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        employee_id: employeeID,
-                        password: password
-                    })
-                }
-            );
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    employee_id: employeeID,
+                    password: password
+                })
+            });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({
+                success: false,
+                message: 'Invalid server response. Please check your backend.'
+            }));
 
-            if (!response.ok) {
+            if (!response.ok || !data.success) {
                 throw new Error(data.message || 'Login failed.');
             }
 
-            // Save the authentication token, not the password
+            if (!data.token) {
+                throw new Error('Login token was not provided by the server.');
+            }
+
+            // Save authentication token
             sessionStorage.setItem('employeeToken', data.token);
+
+            // Save employee information
+            sessionStorage.setItem(
+                'employeeName',
+                data.name || 'Employee'
+            );
+
+            sessionStorage.setItem(
+                'employeeID',
+                employeeID
+            );
 
             alert('Welcome, ' + (data.name || 'Employee') + '!');
 
-            // Change this to your actual employee dashboard page
-            window.location.href =
-                data.redirectUrl || 'employee-dashboard.html';
+            // Redirect to Employee and Inventory Management
+            window.location.href = '/employee-inventory.html';
 
         } catch (error) {
-            alert(error.message);
+            console.error('Employee login error:', error);
+
+            alert(
+                error.message || 'Unable to log in. Please try again.'
+            );
         }
     });
 
@@ -146,6 +165,12 @@ document.getElementById('employeeSignupForm')
         const confirmPassword = document.getElementById('confirmPassword')
             .value;
 
+        // Validate registration information
+        if (!name || !employeeID || !password || !confirmPassword) {
+            alert('Please complete all registration fields.');
+            return;
+        }
+
         if (password.length < 8) {
             alert('Password must contain at least 8 characters.');
             return;
@@ -157,34 +182,44 @@ document.getElementById('employeeSignupForm')
         }
 
         try {
-            const response = await fetch(
-                'http://localhost:12067/api/auth/register',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        employee_id: employeeID,
-                        password: password
-                    })
-                }
-            );
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    employee_id: employeeID,
+                    password: password
+                })
+            });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({
+                success: false,
+                message: 'Invalid server response. Please check your backend.'
+            }));
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed.');
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message || 'Employee registration failed.'
+                );
             }
 
-            alert('Employee account created successfully! Please log in.');
+            alert(
+                'Employee account created successfully! Please log in.'
+            );
 
+            // Clear registration form
             document.getElementById('employeeSignupForm').reset();
 
+            // Return to employee login
             showEmployeeLogin();
 
         } catch (error) {
-            alert(error.message);
+            console.error('Employee registration error:', error);
+
+            alert(
+                error.message || 'Unable to register. Please try again.'
+            );
         }
     });
