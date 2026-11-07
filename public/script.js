@@ -1,39 +1,108 @@
 
-// ==========================================
-// STATE MANAGEMENT
-// ==========================================
+ // ==========================================
+ // STATE MANAGEMENT
+ // ==========================================
 
 let currentDesigns = [];
 let availableSizes = [];
 let availableFlavors = [];
+
 let cart = JSON.parse(
     sessionStorage.getItem('sweetCustomCart') || '[]'
 );
+
 let activeCake = null;
 
 
 // ==========================================
-// INITIAL DATA FETCHING
+// INITIALIZE PAGE
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
 
     updateCartBadge();
 
-    await fetchSizesAndFlavors();
+    await loadCakeDesignOptions();
 
     await fetchCakeDesigns();
 
 });
 
 
+// ==========================================
+// FETCH CAKE DESIGNS FROM MYSQL
+// ==========================================
+
+async function fetchCakeDesigns(category = 'all') {
+
+    const container = document.getElementById('cakeGridContainer');
+
+    try {
+
+        if (container) {
+            container.innerHTML = '<p>Loading cake designs...</p>';
+        }
+
+        const response = await fetch('/api/cake-designs');
+
+        if (!response.ok) {
+            throw new Error('Unable to retrieve cake designs from the server.');
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load cake designs.');
+        }
+
+        currentDesigns = Array.isArray(result.data)
+            ? result.data
+            : [];
+
+        // Display categories in sidebar
+        renderCategoryButtons();
+
+        // Filter designs
+        const filteredDesigns = category === 'all'
+            ? currentDesigns
+            : currentDesigns.filter(cake =>
+                (cake.category || '').toLowerCase() === category.toLowerCase()
+            );
+
+        // Display cake cards
+        renderCakeCards(filteredDesigns);
+
+        if (filteredDesigns.length === 0 && container) {
+            container.innerHTML = `
+                <p class="empty-msg">
+                    No cake designs available in this category.
+                </p>
+            `;
+        }
+
+    } catch (error) {
+
+        console.error('Cake design loading error:', error);
+
+        if (container) {
+            container.innerHTML = `
+                <p class="empty-msg">
+                    Unable to load cake designs.
+                    Please check your server and database connection.
+                </p>
+            `;
+        }
+    }
+}
+
 
 // ==========================================
 // FETCH SIZES AND FLAVORS
 // ==========================================
 
-async function fetchSizesAndFlavors() {
+async function loadCakeDesignOptions() {
 
+    // Default options
     availableSizes = [
         { id: 1, name: 'Round (6")', extraPrice: 0 },
         { id: 2, name: 'Round (8")', extraPrice: 150 },
@@ -51,27 +120,22 @@ async function fetchSizesAndFlavors() {
     try {
 
         const [resSizes, resFlavors] = await Promise.all([
-            fetch('/api/sizes').catch(() => null),
-            fetch('/api/flavors').catch(() => null)
+            fetch('/api/cake-designs/sizes'),
+            fetch('/api/cake-designs/flavors')
         ]);
 
-        if (resSizes && resSizes.ok) {
-
+        if (resSizes.ok) {
             const sizesData = await resSizes.json();
 
-            if (sizesData.data?.length) {
-                availableSizes = sizesData.data.map(s => ({
-                    ...s,
-                    extraPrice: Number(s.extraPrice ?? s.price ?? 0)
-                }));
+            if (Array.isArray(sizesData.data) && sizesData.data.length) {
+                availableSizes = sizesData.data;
             }
         }
 
-        if (resFlavors && resFlavors.ok) {
-
+        if (resFlavors.ok) {
             const flavorsData = await resFlavors.json();
 
-            if (flavorsData.data?.length) {
+            if (Array.isArray(flavorsData.data) && flavorsData.data.length) {
                 availableFlavors = flavorsData.data.map(f => ({
                     ...f,
                     extraPrice: Number(f.extraPrice ?? f.price_add ?? 0)
@@ -79,60 +143,62 @@ async function fetchSizesAndFlavors() {
             }
         }
 
-    } catch (err) {
-        console.log('Using default sizes and flavors:', err);
+    } catch (error) {
+
+        console.warn(
+            'Using default cake sizes and flavors:',
+            error
+        );
     }
 }
 
 
 // ==========================================
-// FETCH CAKE DESIGNS
+// GENERATE CATEGORY BUTTONS
 // ==========================================
 
-async function fetchCakeDesigns(categoryFilter = 'all') {
+function renderCategoryButtons() {
 
-    try {
+    const nav = document.querySelector('.nav-menu');
 
-        let url = '/api/cake-designs';
+    if (!nav) return;
 
-        if (categoryFilter !== 'all') {
-            url += `?category=${encodeURIComponent(categoryFilter)}`;
-        }
+    // Remove previously generated category buttons
+    nav.querySelectorAll('.dynamic-category').forEach(button => {
+        button.remove();
+    });
 
-        const res = await fetch(url);
+    const categories = [
+        ...new Set(
+            currentDesigns
+                .map(cake => cake.category)
+                .filter(Boolean)
+        )
+    ];
 
-        if (!res.ok) {
-            throw new Error('Unable to fetch cake designs.');
-        }
+    const title = nav.querySelector('.menu-section-title');
 
-        const result = await res.json();
+    categories.forEach(category => {
 
-        if (result.success && result.data?.length > 0) {
+        const button = document.createElement('button');
 
-            currentDesigns = result.data.map(cake => ({
-                ...cake,
-                id: Number(cake.id ?? cake.design_id),
-                title: cake.title ?? cake.name,
-                basePrice: Number(cake.basePrice ?? cake.base_price ?? 350),
-                imageUrl: cake.imageUrl ??
-                    (cake.image ? `images/${cake.image}` : 'images/minimalist.jpg')
-            }));
+        button.type = 'button';
+        button.className = 'nav-btn dynamic-category';
+        button.textContent =
+            '🎂 ' + category.charAt(0).toUpperCase() + category.slice(1);
 
+        button.dataset.category = category;
+
+        button.addEventListener('click', () => {
+            filterCategory(category);
+        });
+
+        if (title) {
+            title.insertAdjacentElement('afterend', button);
         } else {
-
-            currentDesigns = getMockDesigns();
+            nav.appendChild(button);
         }
-
-        renderCakeCards(currentDesigns);
-
-    } catch (err) {
-
-        console.error('API connection issue:', err);
-
-        currentDesigns = getMockDesigns();
-
-        renderCakeCards(currentDesigns);
-    }
+    });
 }
 
 
@@ -783,18 +849,32 @@ function updateCartBadge() {
 // CATEGORY FILTER
 // ==========================================
 
-function filterCategory(cat) {
 
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
+function filterCategory(category) {
+
+    document.querySelectorAll('.nav-btn').forEach(button => {
+        button.classList.remove('active');
     });
 
-    if (window.event && window.event.target) {
-        window.event.target.classList.add('active');
+    const selectedButton = category === 'all'
+        ? document.querySelector('.nav-btn:not(.dynamic-category)')
+        : document.querySelector(
+            `.dynamic-category[data-category="${category}"]`
+        );
+
+    if (selectedButton) {
+        selectedButton.classList.add('active');
     }
 
-    fetchCakeDesigns(cat);
+    const filteredDesigns = category === 'all'
+        ? currentDesigns
+        : currentDesigns.filter(cake =>
+            (cake.category || '').toLowerCase() === category.toLowerCase()
+        );
+
+    renderCakeCards(filteredDesigns);
 }
+
 
 
 // ==========================================

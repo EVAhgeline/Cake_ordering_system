@@ -103,13 +103,37 @@
             </div>
         </section>
 
-        <p id="dashboardMessage"></p>
+        <p id="dashboardMessage" role="status"></p>
 
     </main>
 
     <!-- DASHBOARD JAVASCRIPT -->
     <script>
-        const API_URL = 'http://localhost:12067/api';
+
+        const API_URL = '/api/auth';
+
+        // ==========================================
+        // AUTHENTICATION
+        // ==========================================
+
+        function getEmployeeToken() {
+            return sessionStorage.getItem('employeeToken');
+        }
+
+        function getAuthHeaders() {
+
+            const token = getEmployeeToken();
+
+            if (!token) {
+                window.location.href = '/index.html';
+                return null;
+            }
+
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
 
         // ==========================================
         // EMPLOYEE INFORMATION
@@ -118,13 +142,22 @@
         document.getElementById('employeeName').textContent =
             sessionStorage.getItem('employeeName') || 'Employee';
 
-
         // ==========================================
         // API RESPONSE HELPER
         // ==========================================
 
         async function getAPIData(url) {
-            const response = await fetch(url);
+
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                throw new Error('Employee authentication required.');
+            }
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers
+            });
 
             const text = await response.text();
 
@@ -136,9 +169,25 @@
                 throw new Error('Invalid response from server.');
             }
 
+            // Handle expired or invalid token
+            if (response.status === 401 || response.status === 403) {
+
+                sessionStorage.removeItem('employeeToken');
+                sessionStorage.removeItem('employeeName');
+                sessionStorage.removeItem('employeeID');
+
+                alert('Your employee session has expired. Please log in again.');
+
+                window.location.href = '/index.html';
+
+                throw new Error('Employee authentication required.');
+            }
+
             if (!response.ok) {
                 throw new Error(
-                    result.message || 'Unable to load dashboard data.'
+                    result.message ||
+                    result.error ||
+                    'Unable to load dashboard data.'
                 );
             }
 
@@ -147,24 +196,31 @@
                 : result.data || [];
         }
 
-
         // ==========================================
         // LOAD DASHBOARD INFORMATION
         // ==========================================
 
         async function loadDashboard() {
+
             const message =
                 document.getElementById('dashboardMessage');
 
             try {
+
+                message.textContent = 'Loading dashboard information...';
+
                 const [
                     employees,
                     inventory,
                     lowStock
                 ] = await Promise.all([
+
                     getAPIData(`${API_URL}/employees`),
+
                     getAPIData(`${API_URL}/inventory`),
+
                     getAPIData(`${API_URL}/inventory-low-stock`)
+
                 ]);
 
                 document.getElementById('employeeCount').textContent =
@@ -179,6 +235,7 @@
                 message.textContent = '';
 
             } catch (error) {
+
                 console.error('Dashboard error:', error);
 
                 message.textContent =
@@ -187,12 +244,12 @@
             }
         }
 
-
         // ==========================================
         // LOGOUT
         // ==========================================
 
         function logout() {
+
             const confirmed = confirm(
                 'Are you sure you want to log out?'
             );
@@ -201,28 +258,28 @@
 
             sessionStorage.removeItem('employeeToken');
             sessionStorage.removeItem('employeeName');
+            sessionStorage.removeItem('employeeID');
             sessionStorage.removeItem('token');
 
-            // Show logged-out message.
-            // A separate login page is needed for redirection.
-            document.querySelector('.main-content').innerHTML = `
-                <section class="welcome-banner">
-                    <h2>You have logged out.</h2>
-                    <p>Your employee session has been cleared.</p>
-                </section>
-            `;
-
-            document.querySelector('.sidebar').style.display = 'none';
+            window.location.href = '/index.html';
         }
-
 
         // ==========================================
         // INITIALIZE DASHBOARD
         // ==========================================
 
         document.addEventListener('DOMContentLoaded', () => {
+
+            if (!getEmployeeToken()) {
+                alert('Please log in as an employee first.');
+                window.location.href = '/index.html';
+                return;
+            }
+
             loadDashboard();
+
         });
+
     </script>
 
 </body>
