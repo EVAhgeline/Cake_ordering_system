@@ -1,5 +1,5 @@
 
-const API_URL = 'http://localhost:12067/api';
+const API_URL = '/api/auth';
 
 let inventory = [];
 let showLowStockOnly = false;

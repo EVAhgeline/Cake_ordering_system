@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Inventory</title>
+    <link rel="stylesheet" href="supplier-style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Supplier Inventory</h1>
+        <p>View inventory items supplied by your suppliers.</p>
+
+        <div class="form-buttons">
+            <a href="supplier.html">
+                Back to Supplier Management
+            </a>
+        </div>
+
+        <h2>Inventory List</h2>
+
+        <p id="message"></p>
+
+        <div class="table-container">
+           <table> 
+                <thead>
+                    <tr>
+                        <th>Inventory ID</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Supplier Name</th>
+                    </tr>
+                </thead>
+
+                <tbody id="inventoryList">
+                    <tr>
+                        <td colspan="5">Loading inventory...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="supplier-inventory.js"></script>
+</body>
+</html>

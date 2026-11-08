@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Order Management | Sweet Custom</title>
+
+    <link rel="stylesheet" href="employee-style.css">
+    <script src="employee-orders.js" defer></script>
+
+    <style>
+        .orders-container {
+            margin-top: 25px;
+        }
+
+        .orders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .orders-header button,
+        .update-btn {
+            background: #ad3030;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        .orders-header button:hover,
+        .update-btn:hover {
+            background: #872323;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .order-top {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 12px;
+        }
+
+        .order-id {
+            color: #ad3030;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 18px 0;
+        }
+
+        .detail-box {
+            background: #faf7f7;
+            padding: 12px;
+            border-radius: 7px;
+        }
+
+        .detail-box p {
+            margin: 6px 0;
+        }
+
+        .cake-list {
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+
+        .cake-item {
+            background: #fff8f5;
+            padding: 12px;
+            border-radius: 7px;
+            margin: 10px 0;
+        }
+
+        .payment-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+        }
+
+        .payment-summary strong {
+            color: #ad3030;
+        }
+
+        .status-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-controls select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .status-label {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #fff0cf;
+            color: #805600;
+            font-size: 13px;
+        }
+
+        #ordersMessage {
+            margin: 15px 0;
+        }
+
+        .empty-orders {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .order-card {
+                padding: 15px;
+            }
+
+            .payment-summary {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <h2>🍰 Sweet Custom</h2>
+        <p class="sidebar-label">EMPLOYEE PANEL</p>
+
+        <a href="employee.html" class="nav-link">
+            🏠 Dashboard
+        </a>
+
+        <a href="employees.html" class="nav-link">
+            👩‍💼 Employees
+        </a>
+
+        <a href="employee-inventory.html" class="nav-link">
+            📦 Inventory
+        </a>
+
+        <a href="supplier.html" class="nav-link">
+            🚚 Suppliers
+        </a>
+
+        <a href="employee-orders.html" class="nav-link active">
+            🧾 Orders
+        </a>
+
+        <button type="button" class="logout-btn" onclick="logout()">
+            ↪ Logout
+        </button>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <h1>Order Management</h1>
+                <p>View customer orders and manage order status.</p>
+            </div>
+
+            <div class="profile">
+                Welcome,
+                <strong id="employeeName">Employee</strong>
+            </div>
+
+        </header>
+
+        <section class="orders-container">
+
+            <div class="orders-header">
+
+                <div>
+                    <h2>Customer Orders</h2>
+                    <p>Manage all cake orders placed by customers.</p>
+                </div>
+
+                <button type="button" id="refreshOrdersBtn">
+                    ↻ Refresh Orders
+                </button>
+
+            </div>
+
+            <p id="ordersMessage" role="status">
+                Loading orders...
+            </p>
+
+            <div id="ordersList"></div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
