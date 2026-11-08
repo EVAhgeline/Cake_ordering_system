@@ -23,11 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadCheckoutData() {
 
-    const customerName =
-        sessionStorage.getItem('customerName');
-
-    const customerPhone =
-        sessionStorage.getItem('customerPhone');
+    const customerName = sessionStorage.getItem('customerName');
+    const customerPhone = sessionStorage.getItem('customerPhone');
 
     try {
 
@@ -52,7 +49,6 @@ function loadCheckoutData() {
         );
 
         document.getElementById('placeOrderBtn').disabled = true;
-
         return;
     }
 
@@ -63,15 +59,11 @@ function loadCheckoutData() {
         );
 
         document.getElementById('placeOrderBtn').disabled = true;
-
         return;
     }
 
-    document.getElementById('customerName').value =
-        customerName;
-
-    document.getElementById('customerPhone').value =
-        customerPhone;
+    document.getElementById('customerName').value = customerName;
+    document.getElementById('customerPhone').value = customerPhone;
 
     renderCheckoutItems();
 
@@ -84,8 +76,7 @@ function loadCheckoutData() {
 
 function renderCheckoutItems() {
 
-    const container =
-        document.getElementById('checkoutItems');
+    const container = document.getElementById('checkoutItems');
 
     container.innerHTML = checkoutCart.map((item, index) => `
 
@@ -113,7 +104,9 @@ function renderCheckoutItems() {
 
                 Texture: ${escapeHtml(item.design?.texture || 'Not specified')}<br>
 
-                Icing: ${escapeHtml(item.design?.icing || 'Not specified')}
+                Icing: ${escapeHtml(item.design?.icing || 'Not specified')}<br>
+
+                Quantity: ${Number(item.quantity) || 1}
 
             </div>
 
@@ -135,10 +128,13 @@ function renderCheckoutItems() {
 
     `).join('');
 
-    const total = checkoutCart.reduce(
-        (sum, item) => sum + (Number(item.price) || 0),
-        0
-    );
+    // Calculate total using checkoutCart
+    const total = checkoutCart.reduce((sum, item) => {
+
+        return sum +
+            (Number(item.price) * (Number(item.quantity) || 1));
+
+    }, 0);
 
     document.getElementById('checkoutTotal').textContent =
         formatCurrency(total);
@@ -152,11 +148,14 @@ function renderCheckoutItems() {
 
 async function placeOrder() {
 
-    const customerName =
-        sessionStorage.getItem('customerName');
+    const button = document.getElementById('placeOrderBtn');
 
-    const customerPhone =
-        sessionStorage.getItem('customerPhone');
+    if (button.disabled) {
+        return;
+    }
+
+    const customerName = sessionStorage.getItem('customerName');
+    const customerPhone = sessionStorage.getItem('customerPhone');
 
     const address =
         document.getElementById('orderAddress').value.trim();
@@ -167,23 +166,33 @@ async function placeOrder() {
     const downpayment =
         Number(document.getElementById('downpayment').value || 0);
 
-    const total = checkoutCart.reduce(
-        (sum, item) => sum + (Number(item.price) || 0),
-        0
-    );
+    // Calculate total using checkoutCart
+    const total = checkoutCart.reduce((sum, item) => {
+
+        return sum +
+            (Number(item.price) * (Number(item.quantity) || 1));
+
+    }, 0);
 
     if (!customerName || !customerPhone) {
 
         showMessage('Customer information is missing.');
-
         return;
+
     }
 
     if (checkoutCart.length === 0) {
 
         showMessage('Your cart is empty.');
-
         return;
+
+    }
+
+    if (!Number.isFinite(total) || total <= 0) {
+
+        showMessage('Your order total is invalid. Please check your cart.');
+        return;
+
     }
 
     if (
@@ -197,6 +206,7 @@ async function placeOrder() {
         );
 
         return;
+
     }
 
     // Prepare database IDs and cake messages
@@ -224,6 +234,7 @@ async function placeOrder() {
         item.designId <= 0 ||
         item.flavorId <= 0 ||
         item.sizeId <= 0 ||
+        !Number.isInteger(item.quantity) ||
         item.quantity <= 0
 
     );
@@ -235,13 +246,10 @@ async function placeOrder() {
         );
 
         return;
+
     }
 
-    const button =
-        document.getElementById('placeOrderBtn');
-
     button.disabled = true;
-
     button.textContent = 'Placing Order...';
 
     showMessage('');
@@ -259,15 +267,10 @@ async function placeOrder() {
             body: JSON.stringify({
 
                 customerName,
-
                 contact: customerPhone,
-
                 address,
-
                 items,
-
                 paymentMethod,
-
                 downpayment
 
             })
@@ -286,33 +289,44 @@ async function placeOrder() {
 
         }
 
-        // Clear cart after successful database insertion
+        // Display order ID
+        document.getElementById('confirmationOrderId').textContent =
+            `#${result.orderId}`;
+
+        // Display payment summary
+        document.getElementById('confirmationTotal').textContent =
+            formatCurrency(result.totalAmount);
+
+        document.getElementById('confirmationDownpayment').textContent =
+            formatCurrency(result.downpayment);
+
+        document.getElementById('confirmationBalance').textContent =
+            formatCurrency(result.remainingBalance);
+
+        // Clear cart after successful order
         sessionStorage.removeItem(CART_KEY);
+        checkoutCart = [];
 
-        document.getElementById('confirmationOrderId')
-            .textContent = `#${result.orderId}`;
-
+        // Show confirmation panel
         document.getElementById('confirmationPanel').hidden = false;
 
-        document.querySelector('.checkout-layout').hidden = true;
-
-        document.querySelector('.checkout-header').hidden = true;
+        // Hide checkout content
+        document.querySelector('.checkout-layout').style.display = 'none';
+        document.querySelector('.checkout-header').style.display = 'none';
 
         showMessage('');
 
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-
     } catch (error) {
 
+        console.error('Place order error:', error);
+
         showMessage(
-            error.message || 'An error occurred while placing your order.'
+            error.message || 'Unable to place your order.'
         );
 
-        button.disabled = false;
+    } finally {
 
+        button.disabled = false;
         button.textContent = 'Place Order';
 
     }
@@ -326,8 +340,7 @@ async function placeOrder() {
 
 function showMessage(message) {
 
-    document.getElementById('pageMessage').textContent =
-        message;
+    document.getElementById('pageMessage').textContent = message;
 
 }
 
@@ -339,7 +352,7 @@ function formatCurrency(amount) {
 
         currency: 'PHP'
 
-    }).format(amount);
+    }).format(Number(amount) || 0);
 
 }
 
