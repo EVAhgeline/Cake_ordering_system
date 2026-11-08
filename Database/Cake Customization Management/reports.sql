@@ -1,4 +1,4 @@
--- 10. Verify the tables and joined cake data
+--  Verify the tables and joined cake data
 SHOW TABLES;
 
 SELECT * FROM categories ORDER BY id;
