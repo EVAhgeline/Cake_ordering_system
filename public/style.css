@@ -1,0 +1,712 @@
+/* ==========================================
+   GENERAL SETTINGS
+========================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    background-color: #f7f8fa;
+    color: #333;
+    min-height: 100vh;
+}
+
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #fff;
+    border-right: 1px solid #eee;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand h2 {
+    color: #a83232;
+    font-size: 1.4rem;
+    margin-bottom: 30px;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.nav-btn.active,
+.nav-btn:hover {
+    background: #fdf2f2;
+    color: #a83232;
+}
+
+.menu-section-title {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #999;
+    text-transform: uppercase;
+    margin: 15px 0 5px 10px;
+    letter-spacing: 0.5px;
+}
+
+
+/* ==========================================
+   MAIN CONTENT & TOPBAR
+========================================== */
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.topbar h1 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+}
+
+
+/* ==========================================
+   SHOPPING CART ICON
+========================================== */
+
+.cart-icon-wrapper {
+    position: relative;
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    cursor: pointer;
+    font-size: 1.4rem;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #a83232;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 7px;
+    border-radius: 50%;
+}
+
+
+/* ==========================================
+   CAKE GALLERY & CARDS
+========================================== */
+
+.cake-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.cake-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cake-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.badge-new {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #d92525;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.cake-card h3 {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.card-actions {
+    display: flex;
+    width: 100%;
+    margin-top: auto;
+}
+
+.btn-edit {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 7px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    background: #a83232;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: #8b2424;
+}
+
+
+/* ==========================================
+   MODAL & BACKDROP
+========================================== */
+
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 15px;
+}
+
+.modal-card {
+    background: #fff;
+    width: 520px;
+    max-width: 95%;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 14px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-card h2 {
+    font-size: 1.4rem;
+    color: #333;
+    margin-bottom: 10px;
+    padding-right: 30px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.close-btn:hover {
+    color: #a83232;
+}
+
+.modal-cake-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 10px 0 18px;
+}
+
+
+/* ==========================================
+   FORM GROUPS & INPUTS
+========================================== */
+
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fff;
+    color: #333;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    border-color: #a83232;
+}
+
+
+/* ==========================================
+   DESIGN SPECIFICATIONS
+========================================== */
+
+.spec-detail {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.custom-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+}
+
+.custom-specs-grid .form-group {
+    min-width: 0;
+    margin-bottom: 15px;
+}
+
+.custom-specs-grid label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #555;
+}
+
+.custom-specs-grid select {
+    width: 100%;
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.95rem;
+    color: #333;
+    outline: none;
+}
+
+.custom-specs-grid select:focus {
+    border-color: #a83232;
+}
+
+
+/* ==========================================
+   PRICE BREAKDOWN & BUTTONS
+========================================== */
+
+.base-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0 10px;
+    color: #555;
+    font-size: 1rem;
+}
+
+.base-price-row strong {
+    color: #333;
+    font-weight: bold;
+}
+
+.price-breakdown {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.15rem;
+    margin: 10px 0 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    color: #333;
+}
+
+.price-breakdown strong {
+    color: #a83232;
+    font-size: 1.3rem;
+}
+
+.add-cart-btn,
+.checkout-btn {
+    width: 100%;
+    padding: 13px;
+    background: #a83232;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-cart-btn:hover,
+.checkout-btn:hover {
+    background: #8b2424;
+}
+
+
+/* ==========================================
+   SHOPPING CART MODAL
+========================================== */
+
+.cart-modal-card {
+    width: 480px;
+}
+
+.cart-items-list {
+    max-height: 280px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.empty-msg {
+    text-align: center;
+    color: #888;
+    padding: 25px 10px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-item-details {
+    font-size: 0.8rem;
+    color: #666;
+    line-height: 1.6;
+    margin-top: 5px;
+}
+
+.cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+
+/* ==========================================
+   WELCOME & ACCOUNT POPUPS
+========================================== */
+
+.welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(35, 25, 20, 0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 9999;
+    overflow-y: auto;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.welcome-card {
+    position: relative;
+    background: #fffaf5;
+    width: 100%;
+    max-width: 500px;
+    padding: 40px 35px;
+    border-radius: 22px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+    animation: welcomeAppear 0.35s ease;
+    margin: auto;
+}
+
+@keyframes welcomeAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.welcome-logo {
+    font-size: 55px;
+    margin-bottom: 12px;
+}
+
+.welcome-card h1,
+.welcome-card h2 {
+    color: #8b4b35;
+    margin-bottom: 10px;
+}
+
+.welcome-card h1 {
+    font-size: 28px;
+}
+
+.welcome-card h3 {
+    color: #684c40;
+    margin: 25px 0 20px;
+}
+
+.welcome-card p {
+    color: #8a7770;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.welcome-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.welcome-option {
+    border: 2px solid #f0d7c7;
+    background: white;
+    padding: 25px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    color: #684c40;
+}
+
+.welcome-option span {
+    font-size: 38px;
+}
+
+.welcome-option strong {
+    font-size: 17px;
+}
+
+.welcome-option small {
+    font-size: 12px;
+    color: #927d73;
+}
+
+.customer-option:hover {
+    border-color: #c47b54;
+    background: #fff0e5;
+    transform: translateY(-4px);
+}
+
+.employee-option:hover {
+    border-color: #829b78;
+    background: #f0f6ed;
+    transform: translateY(-4px);
+}
+
+.form-card {
+    max-width: 430px;
+    text-align: left;
+}
+
+.form-card h2,
+.form-card > p,
+.form-card > .welcome-logo {
+    text-align: center;
+}
+
+.form-card .form-group input {
+    border-color: #e5cfc2;
+}
+
+.form-card .form-group input:focus {
+    border-color: #b87856;
+    box-shadow: 0 0 0 3px rgba(184, 120, 86, 0.12);
+}
+
+.welcome-submit {
+    width: 100%;
+    padding: 14px;
+    background: #a96546;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 8px;
+}
+
+.welcome-submit:hover {
+    background: #884c34;
+}
+
+.back-btn {
+    display: block;
+    margin: 18px auto 0;
+    border: none;
+    background: transparent;
+    color: #a96546;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-card .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #8b4b35;
+    cursor: pointer;
+}
+
+.signup-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #806b61;
+}
+
+.signup-link button {
+    background: none;
+    border: none;
+    color: #a96546;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+
+/* ==========================================
+   RESPONSIVE DESIGN
+========================================== */
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 0;
+        padding: 15px;
+    }
+
+    .brand h2 {
+        margin-bottom: 15px;
+    }
+
+    .main-content {
+        padding: 18px;
+    }
+
+    .cake-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .modal-card {
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cake-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .custom-specs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar h1 {
+        font-size: 1.4rem;
+    }
+
+    .modal-card {
+        padding: 18px;
+    }
+
+    .modal-cake-img {
+        height: 150px;
+    }
+
+    .welcome-card {
+        padding: 35px 20px;
+    }
+
+    .welcome-card h1 {
+        font-size: 23px;
+    }
+
+    .welcome-options {
+        grid-template-columns: 1fr;
+    }
+}

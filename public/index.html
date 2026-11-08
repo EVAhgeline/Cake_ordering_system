@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cake Design & Ordering System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    
+    <!-- ======================================
+         WELCOME POPUP
+    ======================================= -->
+    <div class="welcome-overlay" id="welcomeModal">
+        <div class="welcome-card">
+            <div class="welcome-logo">🎂</div>
+            <h1>Welcome to Sweet Custom!</h1>
+            <p>Freshly designed cakes, made just for you.</p>
+            <h3>How would you like to continue?</h3>
+
+            <div class="welcome-options">
+                <button class="welcome-option customer-option" onclick="showCustomerForm()">
+                    <span>🛍️</span>
+                    <strong>Customer</strong>
+                    <small>Order your favorite cake</small>
+                </button>
+
+                <button class="welcome-option employee-option" onclick="showEmployeeLogin()">
+                    <span>👩‍💼</span>
+                    <strong>Employee</strong>
+                    <small>Access employee management</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         CUSTOMER INFORMATION POPUP
+    ======================================= -->
+    <div class="welcome-overlay hidden" id="customerModal">
+        <div class="welcome-card form-card">
+            <button class="close-btn" onclick="backToWelcome()">&times;</button>
+            <div class="welcome-logo">🛍️</div>
+            <h2>Customer Information</h2>
+            <p>Please enter your information to continue.</p>
+
+            <form id="customerForm">
+                <div class="form-group">
+                    <label for="customerName">Full Name</label>
+                    <input type="text" id="customerName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number</label>
+                    <input type="tel" id="customerPhone" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" maxlength="11" required>
+                </div>
+
+                <button type="submit" class="welcome-submit">
+                    Continue to Sweet Custom →
+                </button>
+            </form>
+
+            <button class="back-btn" onclick="backToWelcome()">← Back</button>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         EMPLOYEE LOGIN POPUP
+    ======================================= -->
+    <div class="welcome-overlay hidden" id="employeeModal">
+        <div class="welcome-card form-card">
+            <button class="close-btn" onclick="backToWelcome()">&times;</button>
+            <div class="welcome-logo">👩‍💼</div>
+            <h2>Employee Login</h2>
+            <p>Enter your employee account information.</p>
+
+            <form id="employeeLoginForm">
+                <div class="form-group">
+                    <label for="employeeID">Employee ID</label>
+                    <input type="text" id="employeeID" placeholder="Enter Employee ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="employeePassword">Password</label>
+                    <input type="password" id="employeePassword" placeholder="Enter Password" required>
+                </div>
+
+                <button type="submit" class="welcome-submit">Login</button>
+            </form>
+
+            <div class="signup-link">
+                Don't have an account yet?
+                <button onclick="showEmployeeSignup()">Sign Up</button>
+            </div>
+
+            <button class="back-btn" onclick="backToWelcome()">← Back</button>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         EMPLOYEE SIGN UP POPUP
+    ======================================= -->
+    <div class="welcome-overlay hidden" id="employeeSignupModal">
+        <div class="welcome-card form-card">
+            <button class="close-btn" onclick="showEmployeeLogin()">&times;</button>
+            <div class="welcome-logo">📝</div>
+            <h2>Employee Registration</h2>
+            <p>Create your employee account.</p>
+
+            <form id="employeeSignupForm">
+                <div class="form-group">
+                    <label for="signupName">Full Name</label>
+                    <input type="text" id="signupName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupEmployeeID">Employee ID</label>
+                    <input type="text" id="signupEmployeeID" placeholder="Enter your assigned Employee ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password" minlength="8" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+
+                <button type="submit" class="welcome-submit">Create Account</button>
+            </form>
+
+            <button class="back-btn" onclick="showEmployeeLogin()">← Back to Login</button>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         SIDEBAR
+    ======================================= -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>🍰 Sweet Custom</h2>
+        </div>
+
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="filterCategory('all')">
+                🏠 Home
+            </button>
+            <div class="menu-section-title">Menu Categories</div>
+        </nav>
+    </aside>
+
+
+    <!-- ======================================
+         MAIN CONTENT
+    ======================================= -->
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Cake Gallery</h1>
+
+            <div class="cart-icon-wrapper" onclick="toggleCartModal()">
+                <div class="cart-icon">🛒</div>
+                <span class="cart-badge" id="cartBadgeCount">0</span>
+            </div>
+        </header>
+
+        <!-- CAKE GALLERY -->
+        <section class="cake-grid" id="cakeGridContainer">
+            <!-- Cake cards generated by script.js -->
+        </section>
+    </main>
+
+
+    <!-- ======================================
+         CUSTOMIZATION MODAL
+    ======================================= -->
+    <div class="modal-backdrop" id="customizerModal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeCustomizerModal()">&times;</button>
+
+            <h2 id="modalCakeTitle">Customize Cake</h2>
+
+            <div class="modal-body">
+                <img id="modalCakeImg" src="" alt="Cake Preview" class="modal-cake-img">
+
+                <form id="customizeForm">
+                    <input type="hidden" id="modalCakeId">
+
+                    <!-- SIZE OPTIONS -->
+                    <div class="form-group">
+                        <label for="sizeSelect">Size Options:</label>
+                        <select id="sizeSelect" onchange="calculateTotalPrice()">
+                            <!-- Dynamic options -->
+                        </select>
+                    </div>
+
+                    <!-- FLAVOR OPTIONS -->
+                    <div class="form-group">
+                        <label for="flavorSelect">Flavor Options:</label>
+                        <select id="flavorSelect" onchange="calculateTotalPrice()">
+                            <!-- Dynamic options -->
+                        </select>
+                    </div>
+
+                    <!-- DESIGN SPECIFICATIONS -->
+                    <div class="form-group">
+                        <label>Design Specs & Add-ons:</label>
+                        <div class="spec-detail" id="modalSpecsDetail">
+                            <!-- Color, Pattern, Shape, Texture, and Icing dropdowns generated by script.js -->
+                        </div>
+                    </div>
+
+                    <!-- BASE PRICE -->
+                    <div class="base-price-row">
+                        <span>Base Price:</span>
+                        <strong id="basePriceDisplay">₱0.00</strong>
+                    </div>
+
+                    <!-- TOTAL PRICE -->
+                    <div class="price-breakdown">
+                        <span>Total Price:</span>
+                        <strong id="dynamicPrice">₱0.00</strong>
+                    </div>
+
+                    <!-- ADD TO CART -->
+                    <button type="button" class="add-cart-btn" onclick="addToCart()">
+                        Add to Cart 🛒
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         SHOPPING CART MODAL
+    ======================================= -->
+    <div class="modal-backdrop" id="cartModal">
+        <div class="modal-card cart-modal-card">
+            <button class="close-btn" onclick="toggleCartModal()">&times;</button>
+
+            <h2>Your Shopping Cart 🛒</h2>
+
+            <!-- CART ITEMS -->
+            <div class="cart-items-list" id="cartItemsList">
+                <p class="empty-msg">Your cart is currently empty.</p>
+            </div>
+
+            <!-- CART SUMMARY -->
+            <div class="cart-summary">
+                <div class="cart-total-row">
+                    <span>Grand Total:</span>
+                    <strong id="cartGrandTotal">₱0.00</strong>
+                </div>
+
+                <button class="checkout-btn" onclick="checkoutOrder()">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================================
+         JAVASCRIPT
+    ======================================= -->
+    <script src="welcome.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
