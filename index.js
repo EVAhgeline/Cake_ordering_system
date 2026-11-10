@@ -4,28 +4,39 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Import Routes (Make sure these match your actual file names)
-const cakeDesignRoutes = require('./cake_design');
-// const sizeRoutes = require('./Size');   // Uncomment if you have Size.js
-// const flavorRoutes = require('./Flavor'); // Uncomment if you have Flavor.js
+// Database connections
+const cakeDb = require('./db');
+const employeeDb = require('./employeeDb');
 
-// Mount API Routes
+// ==========================================
+// ROUTE IMPORTS
+// ==========================================
+
+const cakeDesignRoutes = require('./routes/cakeDesignRoutes');
+const employeeRoutes = require('./Employee');
+
+// Register routes
 app.use('/api/cake-designs', cakeDesignRoutes);
-// app.use('/api/sizes', sizeRoutes);
-// app.use('/api/flavors', flavorRoutes);
+app.use('/api/auth', employeeRoutes);
 
 // Homepage
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start Server
+// API test
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'API is working!' });
+});
+
+// Start server
 const PORT = process.env.PORT || 12067;
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
