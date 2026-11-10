@@ -5,6 +5,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Supplier Management | Sweet Custom</title>
+
+    <link rel="stylesheet" href="employee-style.css">
+
+    <style>
+        /* SUPPLIER PAGE */
+        .supplier-section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .supplier-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .supplier-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .supplier-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .supplier-form .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .supplier-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .supplier-actions button {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .save-btn {
+            background: #8b5e83;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #777;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #e5a93d;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .supplier-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        .supplier-table th,
+        .supplier-table td {
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .supplier-table th {
+            background: #f5edf4;
+        }
+
+        .supplier-table td button {
+            margin: 3px;
+        }
+
+        #message {
+            margin: 12px 0;
+            font-weight: 500;
+        }
+
+        .page-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .page-links a {
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background: #8b5e83;
+            color: white;
+        }
+
+        @media (max-width: 650px) {
+            .supplier-form {
+                grid-template-columns: 1fr;
+            }
+
+            .supplier-form .full-width {
+                grid-column: auto;
+            }
+        }
+    </style>
     <title>Supplier Dashboard | Sweet Custom</title>
 
     <link rel="stylesheet" href="supplier-style.css">
@@ -13,6 +139,34 @@
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
+
+        <h2>🍰 Sweet Custom</h2>
+
+        <p class="sidebar-label">EMPLOYEE PANEL</p>
+
+        <a href="/employee.html" class="nav-link">
+            🏠 Dashboard
+        </a>
+
+        <a href="/employees.html" class="nav-link">
+            👩‍💼 Employees
+        </a>
+
+        <a href="/employee-inventory.html" class="nav-link">
+            📦 Inventory
+        </a>
+
+        <a href="/supplier.html" class="nav-link active">
+            🚚 Suppliers
+        </a>
+
+        <a href="/supplier-inventory.html" class="nav-link">
+            📋 Supplier Inventory
+        </a>
+
+        <button type="button" class="logout-btn" onclick="logout()">
+            ↪ Logout
+        </button>
 
         <div class="brand">
             <h2>🍰 Sweet Custom</h2>
@@ -63,10 +217,17 @@
 
     </aside>
 
+    </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
 
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div>
+                <h1>Supplier Management</h1>
+                <p>Add, view, update, and manage suppliers.</p>
         <!-- HEADER -->
         <header class="dashboard-header">
 
@@ -90,7 +251,97 @@
         <!-- DASHBOARD MESSAGE -->
         <p id="dashboardMessage" role="status"></p>
 
+        </header>
 
+        <!-- PAGE NAVIGATION -->
+        <div class="page-links">
+
+            <a href="/employee.html">
+                ← Back to Dashboard
+            </a>
+
+            <a href="/supplier-inventory.html">
+                📋 View Supplier Inventory
+            </a>
+
+        </div>
+
+        <!-- SUPPLIER FORM -->
+        <section class="supplier-section">
+
+            <h2 id="formTitle">Add New Supplier</h2>
+
+            <form id="supplierForm" class="supplier-form">
+
+                <input
+                    type="hidden"
+                    id="supplierId"
+                >
+
+                <input
+                    type="text"
+                    id="supplierName"
+                    placeholder="Supplier Name"
+                    required
+                    maxlength="150"
+                >
+
+                <input
+                    type="text"
+                    id="supplierContact"
+                    placeholder="Contact Number"
+                    maxlength="50"
+                >
+
+                <input
+                    type="email"
+                    id="supplierEmail"
+                    placeholder="Email Address"
+                    maxlength="150"
+                >
+
+                <input
+                    type="text"
+                    id="supplierAddress"
+                    placeholder="Supplier Address"
+                    maxlength="255"
+                >
+
+                <div class="supplier-actions full-width">
+
+                    <button
+                        type="submit"
+                        class="save-btn"
+                        id="submitBtn"
+                    >
+                        Add Supplier
+                    </button>
+
+                    <button
+                        type="button"
+                        class="cancel-btn"
+                        id="cancelBtn"
+                        hidden
+                    >
+                        Cancel Edit
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <!-- SUPPLIER LIST -->
+        <section class="supplier-section">
+
+            <h2>Supplier List</h2>
+
+            <p id="message" role="status">
+                Loading suppliers...
+            </p>
+
+            <div class="table-container">
         <!-- STATISTICS -->
         <section class="stats-grid">
 
@@ -144,6 +395,28 @@
 
         </section>
 
+                <table class="supplier-table">
+
+                    <thead>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <th>Supplier Name</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th>Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="supplierList">
+
+                        <tr>
+                            <td colspan="6">
+                                Loading suppliers...
+                            </td>
+                        </tr>
+
+                    </tbody>
 
         <!-- SUPPLIER OVERVIEW -->
         <section class="table-panel">
@@ -189,7 +462,29 @@
 
     </main>
 
+    <!-- SUPPLIER JAVASCRIPT -->
+    <script src="supplier.js"></script>
 
+    <script>
+        // DISPLAY EMPLOYEE NAME
+        document.getElementById('employeeName').textContent =
+            sessionStorage.getItem('employeeName') || 'Employee';
+
+        // LOGOUT
+        function logout() {
+
+            if (!confirm('Are you sure you want to log out?')) {
+                return;
+            }
+
+            sessionStorage.removeItem('employeeToken');
+            sessionStorage.removeItem('employeeName');
+            sessionStorage.removeItem('employeeID');
+            sessionStorage.removeItem('token');
+
+            window.location.replace('/index.html');
+        }
+    </script>
     <script src="supplier-dashboard.js"></script>
 
 </body>
