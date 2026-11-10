@@ -12,6 +12,7 @@
 
     <main class="checkout-container">
 
+        <!-- CHECKOUT HEADER -->
         <header class="checkout-header">
             <a href="index.html" class="back-link">
                 ← Back to Cake Gallery
@@ -29,6 +30,7 @@
             <section class="checkout-panel">
 
                 <h2>Customer Information</h2>
+
                 <p class="section-note">
                     Your information is retrieved from the welcome form.
                 </p>
@@ -52,6 +54,7 @@
                         rows="3"
                         placeholder="Enter your delivery address if needed">
                     </textarea>
+
                     <small>
                         Leave blank if you are arranging pickup.
                     </small>
@@ -73,6 +76,7 @@
                         min="0"
                         step="0.01"
                         value="0">
+
                     <small>
                         Enter 0 if no downpayment is required.
                     </small>
@@ -110,7 +114,10 @@
         </div>
 
         <!-- ORDER CONFIRMATION -->
-        <section id="confirmationPanel" class="confirmation-panel" hidden>
+        <section
+            id="confirmationPanel"
+            class="confirmation-panel"
+            hidden>
 
             <h2>Order Placed Successfully!</h2>
 
@@ -119,6 +126,26 @@
             <p>Your Order ID is:</p>
 
             <strong id="confirmationOrderId"></strong>
+
+            <!-- PAYMENT SUMMARY -->
+            <div class="confirmation-details">
+
+                <p>
+                    Total Amount:
+                    <strong id="confirmationTotal">₱0.00</strong>
+                </p>
+
+                <p>
+                    Downpayment:
+                    <strong id="confirmationDownpayment">₱0.00</strong>
+                </p>
+
+                <p>
+                    Remaining Balance:
+                    <strong id="confirmationBalance">₱0.00</strong>
+                </p>
+
+            </div>
 
             <a href="index.html" class="return-link">
                 Return to Cake Gallery
