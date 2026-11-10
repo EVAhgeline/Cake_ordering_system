@@ -1,17 +1,11 @@
 
-const SUPPLIER_API = '/api/suppliers';
-const INVENTORY_API = '/api/suppliers/inventory';
-
-let suppliersData = [];
-let inventoryData = [];
-
+const API_URL = '/api/suppliers';
 
 // =====================================
 // GET AUTH HEADERS
 // =====================================
 
 function getHeaders() {
-
     const headers = {
         'Content-Type': 'application/json'
     };
@@ -25,48 +19,83 @@ function getHeaders() {
     return headers;
 }
 
+
+// =====================================
+// FETCH JSON RESPONSE
+// =====================================
+
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...getHeaders(),
+            ...(options.headers || {})
+        }
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+
+    let result = {};
+
+    if (contentType.includes('application/json')) {
+        result = await response.json();
+    } else {
+        const text = await response.text();
+
+        if (!response.ok) {
+            throw new Error(text || `Request failed (${response.status}).`);
+        }
+
+        throw new Error('The server did not return JSON. Check your API route.');
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            result.message || `Request failed (${response.status}).`
+        );
+    }
+
+    return result;
+}
+
+
 // =====================================
 // LOAD ALL SUPPLIERS
 // =====================================
 
 async function loadSuppliers() {
-
     const supplierList = document.getElementById('supplierList');
     const message = document.getElementById('message');
 
-    supplierList.innerHTML =
-        '<tr><td colspan="6">Loading suppliers...</td></tr>';
+    supplierList.innerHTML = `
+        <tr>
+            <td colspan="6">Loading suppliers...</td>
+        </tr>
+    `;
+
+    message.textContent = 'Loading suppliers...';
 
     try {
-
-        const response = await fetch(API_URL, {
-            method: 'GET',
-            headers: getHeaders()
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.message || 'Failed to load suppliers.');
-        }
+        const result = await fetchJSON(API_URL);
 
         if (!Array.isArray(result)) {
-            throw new Error('Invalid supplier data received.');
+            throw new Error('Invalid supplier data received from the server.');
         }
 
-        supplierList.innerHTML = '';
+        supplierList.replaceChildren();
 
         if (result.length === 0) {
-
-            supplierList.innerHTML =
-                '<tr><td colspan="6">No suppliers found.</td></tr>';
+            supplierList.innerHTML = `
+                <tr>
+                    <td colspan="6">No suppliers found.</td>
+                </tr>
+            `;
 
             message.textContent = 'No supplier records available.';
             return;
         }
 
         result.forEach(supplier => {
-
             const row = document.createElement('tr');
 
             const values = [
@@ -78,19 +107,15 @@ async function loadSuppliers() {
             ];
 
             values.forEach(value => {
-
                 const cell = document.createElement('td');
-
-                cell.textContent = value ?? '';
-
+                cell.textContent = value ?? '—';
                 row.appendChild(cell);
             });
 
-            // ACTIONS
+            // EDIT BUTTON
             const actionCell = document.createElement('td');
 
             const editButton = document.createElement('button');
-
             editButton.type = 'button';
             editButton.textContent = 'Edit';
             editButton.className = 'edit-btn';
@@ -99,8 +124,8 @@ async function loadSuppliers() {
                 editSupplier(supplier);
             });
 
+            // DELETE BUTTON
             const deleteButton = document.createElement('button');
-
             deleteButton.type = 'button';
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'delete-btn';
@@ -109,9 +134,7 @@ async function loadSuppliers() {
                 deleteSupplier(supplier.supplier_id);
             });
 
-            actionCell.appendChild(editButton);
-            actionCell.appendChild(deleteButton);
-
+            actionCell.append(editButton, deleteButton);
             row.appendChild(actionCell);
 
             supplierList.appendChild(row);
@@ -120,104 +143,92 @@ async function loadSuppliers() {
         message.textContent = `Total suppliers: ${result.length}`;
 
     } catch (error) {
-
         console.error('Supplier loading error:', error);
 
-        supplierList.innerHTML =
-            '<tr><td colspan="6">Failed to load suppliers.</td></tr>';
+        supplierList.innerHTML = `
+            <tr>
+                <td colspan="6">Failed to load suppliers.</td>
+            </tr>
+        `;
 
         message.textContent = error.message;
     }
 }
 
+
 // =====================================
 // ADD OR UPDATE SUPPLIER
 // =====================================
 
-document.getElementById('supplierForm')
-    .addEventListener('submit', async function(event) {
+async function saveSupplier(event) {
+    event.preventDefault();
 
-        event.preventDefault();
+    const supplierId = document.getElementById('supplierId').value;
 
-        const supplierId =
-            document.getElementById('supplierId').value;
+    const supplierName = document.getElementById('supplierName').value.trim();
+    const contact = document.getElementById('supplierContact').value.trim();
+    const email = document.getElementById('supplierEmail').value.trim();
+    const address = document.getElementById('supplierAddress').value.trim();
 
-        const supplierName =
-            document.getElementById('supplierName').value.trim();
+    const message = document.getElementById('message');
+    const submitButton = document.getElementById('submitBtn');
 
-        const contact =
-            document.getElementById('supplierContact').value.trim();
+    if (!supplierName) {
+        message.textContent = 'Supplier name is required.';
+        return;
+    }
 
-        const email =
-            document.getElementById('supplierEmail').value.trim();
+    const supplierData = {
+        supplier_name: supplierName,
+        contact,
+        email,
+        address
+    };
 
-        const address =
-            document.getElementById('supplierAddress').value.trim();
+    const isEditing = Boolean(supplierId);
 
-        const message = document.getElementById('message');
+    const url = isEditing
+        ? `${API_URL}/${encodeURIComponent(supplierId)}`
+        : API_URL;
 
-        if (!supplierName) {
-            message.textContent = 'Supplier name is required.';
-            return;
-        }
+    submitButton.disabled = true;
+    submitButton.textContent = isEditing ? 'Updating...' : 'Saving...';
 
-        const supplierData = {
-            supplier_name: supplierName,
-            contact,
-            email,
-            address
-        };
+    try {
+        await fetchJSON(url, {
+            method: isEditing ? 'PUT' : 'POST',
+            body: JSON.stringify(supplierData)
+        });
 
-        const isEditing = Boolean(supplierId);
+        alert(
+            isEditing
+                ? 'Supplier updated successfully!'
+                : 'Supplier added successfully!'
+        );
 
-        const url = isEditing
-            ? `${API_URL}/${encodeURIComponent(supplierId)}`
-            : API_URL;
+        resetSupplierForm();
+        await loadSuppliers();
 
-        try {
+    } catch (error) {
+        console.error('Supplier save error:', error);
+        message.textContent = error.message;
 
-            const response = await fetch(url, {
+    } finally {
+        submitButton.disabled = false;
 
-                method: isEditing ? 'PUT' : 'POST',
+        submitButton.textContent =
+            document.getElementById('supplierId').value
+                ? 'Update Supplier'
+                : 'Add Supplier';
+    }
+}
 
-                headers: getHeaders(),
-
-                body: JSON.stringify(supplierData)
-
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message || 'Unable to save supplier.'
-                );
-            }
-
-            alert(
-                isEditing
-                    ? 'Supplier updated successfully!'
-                    : 'Supplier added successfully!'
-            );
-
-            resetSupplierForm();
-
-            await loadSuppliers();
-
-        } catch (error) {
-
-            console.error('Supplier save error:', error);
-
-            message.textContent = error.message;
-        }
-    });
 
 // =====================================
 // EDIT SUPPLIER
 // =====================================
 
 function editSupplier(supplier) {
-
     document.getElementById('supplierId').value =
         supplier.supplier_id;
 
@@ -247,342 +258,37 @@ function editSupplier(supplier) {
     });
 }
 
+
 // =====================================
 // DELETE SUPPLIER
 // =====================================
 
 async function deleteSupplier(supplierId) {
-
     const confirmed = confirm(
         'Are you sure you want to delete this supplier?'
     );
 
-    if (!confirmed) {
-        return;
-    }
+    if (!confirmed) return;
 
     const message = document.getElementById('message');
 
     try {
-
-        const response = await fetch(
+        await fetchJSON(
             `${API_URL}/${encodeURIComponent(supplierId)}`,
             {
-                method: 'DELETE',
-                headers: getHeaders()
+                method: 'DELETE'
             }
         );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                result.message || 'Unable to delete supplier.'
-            );
-        }
 
         alert('Supplier deleted successfully!');
 
         resetSupplierForm();
-
         await loadSuppliers();
 
     } catch (error) {
-
         console.error('Supplier deletion error:', error);
-// FETCH JSON
-// =====================================
-
-async function fetchJSON(url) {
-
-    const response = await fetch(url);
-
-    const contentType = response.headers.get('content-type') || '';
-
-    if (!contentType.includes('application/json')) {
-        throw new Error('API returned HTML instead of JSON. Check index.js routes.');
-    }
-
-    const result = await response.json();
-
-    if (!response.ok) {
-        throw new Error(result.message || 'Unable to load data.');
-    }
-
-    return result;
-}
-
-
-// =====================================
-// UPDATE STATISTICS
-// =====================================
-
-function updateStatistics() {
-
-    const totalSuppliers = suppliersData.length;
-
-    const assigned = inventoryData.filter(
-        item => item.supplier_id !== null &&
-                item.supplier_id !== undefined
-    );
-
-    const unassigned = inventoryData.length - assigned.length;
-
-    const suppliersWithStock = suppliersData.filter(
-        supplier => assigned.some(
-            item => String(item.supplier_id) === String(supplier.supplier_id)
-        )
-    );
-
-    const coverage = inventoryData.length
-        ? (assigned.length / inventoryData.length) * 100
-        : 0;
-
-    document.getElementById('totalSuppliers').textContent =
-        totalSuppliers;
-
-    document.getElementById('totalInventory').textContent =
-        inventoryData.length;
-
-    document.getElementById('assignedItems').textContent =
-        assigned.length;
-
-    document.getElementById('unassignedItems').textContent =
-        unassigned;
-
-    document.getElementById('suppliersWithStock').textContent =
-        suppliersWithStock.length;
-
-    document.getElementById('coverageRate').textContent =
-        coverage.toFixed(1) + '%';
-}
-
-
-// =====================================
-// POPULATE SUPPLIER FILTER
-// =====================================
-
-function populateSupplierFilter() {
-
-    const select = document.getElementById('supplierFilter');
-
-    select.innerHTML = '<option value="all">All Suppliers</option>';
-
-    suppliersData.forEach(supplier => {
-
-        const option = document.createElement('option');
-
-        option.value = supplier.supplier_id;
-        option.textContent = supplier.supplier_name;
-
-        select.appendChild(option);
-    });
-}
-
-
-// =====================================
-// LOAD SUPPLIER TABLE
-// =====================================
-
-function renderSuppliers() {
-
-    const tableBody = document.getElementById('supplierTableBody');
-
-    const supplierFilter =
-        document.getElementById('supplierFilter').value;
-
-    const statusFilter =
-        document.getElementById('statusFilter').value;
-
-    const search =
-        document.getElementById('itemSearch').value.toLowerCase().trim();
-
-    tableBody.replaceChildren();
-
-    const filteredSuppliers = suppliersData.filter(supplier => {
-
-        const items = inventoryData.filter(
-            item => String(item.supplier_id) === String(supplier.supplier_id)
-        );
-
-        const assigned = items.length > 0;
-
-        const matchesSupplier =
-            supplierFilter === 'all' ||
-            String(supplier.supplier_id) === supplierFilter;
-
-        const matchesStatus =
-            statusFilter === 'all' ||
-            (statusFilter === 'assigned' && assigned) ||
-            (statusFilter === 'unassigned' && !assigned);
-
-        const searchable = [
-            supplier.supplier_name,
-            supplier.contact,
-            supplier.email,
-            supplier.address,
-            ...items.map(item => item.item_name)
-        ].join(' ').toLowerCase();
-
-        return matchesSupplier &&
-               matchesStatus &&
-               searchable.includes(search);
-    });
-
-
-    if (filteredSuppliers.length === 0) {
-
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-
-        cell.colSpan = 7;
-        cell.textContent = 'No matching suppliers found.';
-
-        row.appendChild(cell);
-        tableBody.appendChild(row);
-
-        document.getElementById('recordCount').textContent =
-            '0 suppliers displayed';
-
-        return;
-    }
-
-
-    filteredSuppliers.forEach(supplier => {
-
-        const items = inventoryData.filter(
-            item => String(item.supplier_id) === String(supplier.supplier_id)
-        );
-
-        const row = document.createElement('tr');
-
-        const values = [
-            supplier.supplier_name,
-            supplier.contact || '—',
-            supplier.email || '—',
-            items.length,
-            items.length
-                ? items.map(item => item.item_name).join(', ')
-                : 'No assigned ingredients'
-        ];
-
-        values.forEach(value => {
-
-            const cell = document.createElement('td');
-
-            cell.textContent = value;
-
-            row.appendChild(cell);
-        });
-
-
-        // ASSIGNMENT STATUS
-
-        const statusCell = document.createElement('td');
-
-        const badge = document.createElement('span');
-
-        badge.className = items.length
-            ? 'status-badge status-assigned'
-            : 'status-badge status-unassigned';
-
-        badge.textContent = items.length
-            ? 'Assigned'
-            : 'No Inventory';
-
-        statusCell.appendChild(badge);
-        row.appendChild(statusCell);
-
-
-        // ACTIONS
-
-        const actionCell = document.createElement('td');
-
-        const manageLink = document.createElement('a');
-
-        manageLink.href = 'supplier.html';
-        manageLink.className = 'view-btn';
-        manageLink.textContent = 'Manage';
-
-        const inventoryLink = document.createElement('a');
-
-        inventoryLink.href = 'supplier-inventory.html';
-        inventoryLink.className = 'view-btn';
-        inventoryLink.textContent = 'View Items';
-
-        inventoryLink.style.marginLeft = '5px';
-
-        actionCell.append(manageLink, inventoryLink);
-
-        row.appendChild(actionCell);
-
-        tableBody.appendChild(row);
-    });
-
-
-    document.getElementById('recordCount').textContent =
-        filteredSuppliers.length + ' suppliers displayed';
-}
-
-
-// =====================================
-// LOAD DASHBOARD DATA
-// =====================================
-
-async function loadSupplierDashboard() {
-
-    const message = document.getElementById('dashboardMessage');
-
-    try {
-
-        message.textContent = 'Loading supplier information...';
-
-        const [suppliers, inventory] = await Promise.all([
-            fetchJSON(SUPPLIER_API),
-            fetchJSON(INVENTORY_API)
-        ]);
-
-        if (!Array.isArray(suppliers) || !Array.isArray(inventory)) {
-            throw new Error('Invalid data received from the API.');
-        }
-
-        suppliersData = suppliers;
-        inventoryData = inventory;
-
-        updateStatistics();
-        populateSupplierFilter();
-        renderSuppliers();
-
-        document.getElementById('lastUpdated').textContent =
-            'Last Updated: ' + new Date().toLocaleString();
-
-        message.textContent = '';
-
-    } catch (error) {
-
-        console.error('Supplier Error:', error);
-
         message.textContent = error.message;
-
-        document.getElementById('supplierTableBody').innerHTML =
-            '<tr><td colspan="7">Unable to load supplier data.</td></tr>';
     }
-}
-
-
-// =====================================
-// RESET FILTERS
-// =====================================
-
-function resetFilters() {
-
-    document.getElementById('supplierFilter').value = 'all';
-
-    document.getElementById('statusFilter').value = 'all';
-
-    document.getElementById('itemSearch').value = '';
-
-    renderSuppliers();
 }
 
 
@@ -591,8 +297,9 @@ function resetFilters() {
 // =====================================
 
 function resetSupplierForm() {
+    const form = document.getElementById('supplierForm');
 
-    document.getElementById('supplierForm').reset();
+    form.reset();
 
     document.getElementById('supplierId').value = '';
 
@@ -605,44 +312,17 @@ function resetSupplierForm() {
     document.getElementById('cancelBtn').hidden = true;
 }
 
-// =====================================
-// CANCEL EDIT
-// =====================================
-
-document.getElementById('cancelBtn')
-    .addEventListener('click', resetSupplierForm);
 
 // =====================================
-// INITIALIZE PAGE
+// INITIALIZE SUPPLIER MANAGEMENT
 // =====================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('supplierForm')
+        .addEventListener('submit', saveSupplier);
+
+    document.getElementById('cancelBtn')
+        .addEventListener('click', resetSupplierForm);
+
     loadSuppliers();
-// INITIALIZE
-// =====================================
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    document.getElementById('supplierFilter')
-        .addEventListener('change', renderSuppliers);
-
-    document.getElementById('statusFilter')
-        .addEventListener('change', renderSuppliers);
-
-    document.getElementById('itemSearch')
-        .addEventListener('input', renderSuppliers);
-
-    document.getElementById('resetBtn')
-        .addEventListener('click', resetFilters);
-
-    document.getElementById('logoutBtn')
-        .addEventListener('click', () => {
-
-            if (!confirm('Are you sure you want to log out?')) return;
-
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        });
-
-    loadSupplierDashboard();
 });

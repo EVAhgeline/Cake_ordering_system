@@ -10,13 +10,12 @@
     <link rel="stylesheet" href="employee-style.css">
 
     <style>
-        /* SUPPLIER PAGE */
         .supplier-section {
             background: white;
             padding: 25px;
             margin-bottom: 25px;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .supplier-section h2 {
@@ -47,8 +46,9 @@
             flex-wrap: wrap;
         }
 
-        .supplier-actions button {
-            padding: 11px 18px;
+        .supplier-actions button,
+        .supplier-table button {
+            padding: 10px 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -131,10 +131,8 @@
             }
         }
     </style>
-    <title>Supplier Dashboard | Sweet Custom</title>
-
-    <link rel="stylesheet" href="supplier-style.css">
 </head>
+
 <body>
 
     <!-- SIDEBAR -->
@@ -168,92 +166,20 @@
             ↪ Logout
         </button>
 
-        <div class="brand">
-            <h2>🍰 Sweet Custom</h2>
-            <p>SUPPLIER PANEL</p>
-        </div>
-
-        <nav class="nav-menu">
-            <a href="employee.html" class="nav-link">🏠 Dashboard</a>
-            <a href="employees.html" class="nav-link">👩‍💼 Employees</a>
-            <a href="employee-inventory.html" class="nav-link">📦 Inventory</a>
-            <a href="supplierd.html" class="nav-link active">🚚 Supplier</a>
-            <a href="supplier.html" class="nav-link">👥 Supplier Management</a>
-            <a href="supplier-inventory.html" class="nav-link">📋 Supplier Inventory</a>
-        </nav>
-
-        <!-- FILTERS -->
-        <div class="sidebar-filters">
-
-            <h3>Dashboard Filters</h3>
-
-            <label for="supplierFilter">Supplier</label>
-            <select id="supplierFilter">
-                <option value="all">All Suppliers</option>
-            </select>
-
-            <label for="statusFilter">Inventory Assignment</label>
-            <select id="statusFilter">
-                <option value="all">All</option>
-                <option value="assigned">With Inventory</option>
-                <option value="unassigned">No Inventory</option>
-            </select>
-
-            <label for="itemSearch">Search Supplier</label>
-            <input
-                type="search"
-                id="itemSearch"
-                placeholder="Search supplier...">
-
-            <button type="button" id="resetBtn" class="reset-btn">
-                ↻ Reset Filters
-            </button>
-
-        </div>
-
-        <button type="button" class="logout-btn" id="logoutBtn">
-            ↪ Logout
-        </button>
-
-    </aside>
-
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
 
-        <!-- TOPBAR -->
+        <!-- HEADER -->
         <header class="topbar">
-
             <div>
                 <h1>Supplier Management</h1>
                 <p>Add, view, update, and manage suppliers.</p>
-        <!-- HEADER -->
-        <header class="dashboard-header">
-
-            <div>
-                <h1>
-                    Suppliers
-                    <span>Performance Overview</span>
-                </h1>
-
-                <p>Sweet Custom · Procurement · Supplier Management</p>
             </div>
-
-            <div class="header-right">
-                <div class="brand-name">Sweet Custom</div>
-                <p id="lastUpdated">Last Updated: Loading...</p>
-            </div>
-
         </header>
 
-
-        <!-- DASHBOARD MESSAGE -->
-        <p id="dashboardMessage" role="status"></p>
-
-        </header>
-
-        <!-- PAGE NAVIGATION -->
+        <!-- PAGE LINKS -->
         <div class="page-links">
 
             <a href="/employee.html">
@@ -337,63 +263,11 @@
 
             <h2>Supplier List</h2>
 
-            <p id="message" role="status">
+            <p id="message" role="status" aria-live="polite">
                 Loading suppliers...
             </p>
 
             <div class="table-container">
-        <!-- STATISTICS -->
-        <section class="stats-grid">
-
-            <div class="stat-card">
-                <div class="stat-icon">🚚</div>
-                <div>
-                    <h2 id="totalSuppliers">0</h2>
-                    <p>Total Suppliers</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div>
-                    <h2 id="totalInventory">0</h2>
-                    <p>Inventory Records</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div>
-                    <h2 id="assignedItems">0</h2>
-                    <p>Assigned Items</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">🏢</div>
-                <div>
-                    <h2 id="suppliersWithStock">0</h2>
-                    <p>Suppliers with Stock</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div>
-                    <h2 id="unassignedItems">0</h2>
-                    <p>Unassigned Items</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
-                <div>
-                    <h2 id="coverageRate">0%</h2>
-                    <p>Supplier Coverage</p>
-                </div>
-            </div>
-
-        </section>
 
                 <table class="supplier-table">
 
@@ -418,61 +292,20 @@
 
                     </tbody>
 
-        <!-- SUPPLIER OVERVIEW -->
-        <section class="table-panel">
-
-            <div class="table-heading">
-                <div>
-                    <h2>Supplier Performance Overview</h2>
-                    <p>Supplier details and assigned inventory records</p>
-                </div>
-
-                <a href="supplier.html" class="manage-btn">
-                    + Manage Suppliers
-                </a>
-            </div>
-
-            <div class="table-container">
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Supplier</th>
-                            <th>Contact</th>
-                            <th>Email</th>
-                            <th>Inventory Items</th>
-                            <th>Supplied Ingredients</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="supplierTableBody">
-                        <tr>
-                            <td colspan="7">Loading suppliers...</td>
-                        </tr>
-                    </tbody>
                 </table>
 
             </div>
-
-            <p id="recordCount">0 suppliers displayed</p>
 
         </section>
 
     </main>
 
-    <!-- SUPPLIER JAVASCRIPT -->
+    <!-- SUPPLIER MANAGEMENT JAVASCRIPT -->
     <script src="supplier.js"></script>
 
+    <!-- LOGOUT -->
     <script>
-        // DISPLAY EMPLOYEE NAME
-        document.getElementById('employeeName').textContent =
-            sessionStorage.getItem('employeeName') || 'Employee';
-
-        // LOGOUT
         function logout() {
-
             if (!confirm('Are you sure you want to log out?')) {
                 return;
             }
@@ -485,7 +318,6 @@
             window.location.replace('/index.html');
         }
     </script>
-    <script src="supplier-dashboard.js"></script>
 
 </body>
 </html>
