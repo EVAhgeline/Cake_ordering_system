@@ -436,7 +436,6 @@ router.delete('/employees/:id', async (req, res) => {
 // ==========================================
 
 function validateInventoryData(body) {
-
     const item_name = String(body.item_name || '').trim();
     const unit = String(body.unit || '').trim();
 
@@ -453,7 +452,6 @@ function validateInventoryData(body) {
             : Number(body.unit_cost);
 
     function optionalId(value, fieldName) {
-
         if (value === undefined || value === null || value === '') {
             return null;
         }
@@ -461,27 +459,30 @@ function validateInventoryData(body) {
         const id = Number(value);
 
         if (!Number.isSafeInteger(id) || id <= 0) {
-            throw new Error(`${fieldName} must be a valid positive ID.`);
+            const error = new Error(`${fieldName} must be a valid positive ID.`);
+            error.statusCode = 400;
+            throw error;
         }
 
         return id;
     }
 
     if (!item_name || !unit) {
-        throw new Error('Item name and unit are required.');
+        const error = new Error('Item name and unit are required.');
+        error.statusCode = 400;
+        throw error;
     }
 
     if (
-        !Number.isFinite(quantity) ||
-        quantity < 0 ||
-        !Number.isFinite(reorder_level) ||
-        reorder_level < 0 ||
-        !Number.isFinite(unit_cost) ||
-        unit_cost < 0
+        !Number.isFinite(quantity) || quantity < 0 ||
+        !Number.isFinite(reorder_level) || reorder_level < 0 ||
+        !Number.isFinite(unit_cost) || unit_cost < 0
     ) {
-        throw new Error(
+        const error = new Error(
             'Quantity, reorder level, and unit cost must be valid non-negative numbers.'
         );
+        error.statusCode = 400;
+        throw error;
     }
 
     return {
@@ -501,9 +502,7 @@ function validateInventoryData(body) {
 // ==========================================
 
 router.get('/inventory', async (req, res) => {
-
     try {
-
         const [rows] = await employeeDb.query(`
             SELECT
                 i.inventory_id,
@@ -517,22 +516,17 @@ router.get('/inventory', async (req, res) => {
                 i.last_updated,
                 s.supplier_name,
                 e.name AS employee_name
-
-            FROM Inventory i
-
-            LEFT JOIN Supplier s
+            FROM inventory i
+            LEFT JOIN supplier s
                 ON i.supplier_id = s.supplier_id
-
-            LEFT JOIN Employee e
+            LEFT JOIN employee e
                 ON i.employee_id = e.employee_id
-
             ORDER BY i.inventory_id DESC
         `);
 
         res.json(rows);
 
     } catch (error) {
-
         console.error('Get inventory error:', error);
 
         res.status(500).json({
@@ -549,9 +543,7 @@ router.get('/inventory', async (req, res) => {
 // ==========================================
 
 router.get('/inventory-low-stock', async (req, res) => {
-
     try {
-
         const [rows] = await employeeDb.query(`
             SELECT
                 i.inventory_id,
@@ -564,24 +556,18 @@ router.get('/inventory-low-stock', async (req, res) => {
                 i.employee_id,
                 s.supplier_name,
                 e.name AS employee_name
-
-            FROM Inventory i
-
-            LEFT JOIN Supplier s
+            FROM inventory i
+            LEFT JOIN supplier s
                 ON i.supplier_id = s.supplier_id
-
-            LEFT JOIN Employee e
+            LEFT JOIN employee e
                 ON i.employee_id = e.employee_id
-
             WHERE i.quantity <= i.reorder_level
-
             ORDER BY i.inventory_id DESC
         `);
 
         res.json(rows);
 
     } catch (error) {
-
         console.error('Low stock error:', error);
 
         res.status(500).json({
@@ -598,23 +584,14 @@ router.get('/inventory-low-stock', async (req, res) => {
 // ==========================================
 
 router.post('/inventory', async (req, res) => {
-
     try {
-
         const item = validateInventoryData(req.body);
 
         const [result] = await employeeDb.query(
-            `INSERT INTO Inventory
-            (
-                item_name,
-                quantity,
-                unit,
-                reorder_level,
-                unit_cost,
-                supplier_id,
-                employee_id
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO inventory
+                (item_name, quantity, unit, reorder_level,
+                 unit_cost, supplier_id, employee_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 item.item_name,
                 item.quantity,
@@ -633,11 +610,12 @@ router.post('/inventory', async (req, res) => {
         });
 
     } catch (error) {
-
         console.error('Add inventory error:', error);
 
-        res.status(error.message.includes('required') ||
-                   error.message.includes('valid') ? 400 : 500).json({
+        const status = error.statusCode ||
+            (error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500);
+
+        res.status(status).json({
             success: false,
             message: error.code === 'ER_NO_REFERENCED_ROW_2'
                 ? 'The selected supplier or employee does not exist.'
@@ -652,9 +630,7 @@ router.post('/inventory', async (req, res) => {
 // ==========================================
 
 router.put('/inventory/:id', async (req, res) => {
-
     try {
-
         const inventoryId = Number(req.params.id);
 
         if (!Number.isSafeInteger(inventoryId) || inventoryId <= 0) {
@@ -667,7 +643,7 @@ router.put('/inventory/:id', async (req, res) => {
         const item = validateInventoryData(req.body);
 
         const [existing] = await employeeDb.query(
-            'SELECT inventory_id FROM Inventory WHERE inventory_id = ?',
+            'SELECT inventory_id FROM inventory WHERE inventory_id = ?',
             [inventoryId]
         );
 
@@ -679,7 +655,7 @@ router.put('/inventory/:id', async (req, res) => {
         }
 
         await employeeDb.query(
-            `UPDATE Inventory
+            `UPDATE inventory
              SET item_name = ?,
                  quantity = ?,
                  unit = ?,
@@ -706,11 +682,12 @@ router.put('/inventory/:id', async (req, res) => {
         });
 
     } catch (error) {
-
         console.error('Update inventory error:', error);
 
-        res.status(error.message.includes('required') ||
-                   error.message.includes('valid') ? 400 : 500).json({
+        const status = error.statusCode ||
+            (error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500);
+
+        res.status(status).json({
             success: false,
             message: error.code === 'ER_NO_REFERENCED_ROW_2'
                 ? 'The selected supplier or employee does not exist.'
@@ -725,9 +702,7 @@ router.put('/inventory/:id', async (req, res) => {
 // ==========================================
 
 router.delete('/inventory/:id', async (req, res) => {
-
     try {
-
         const inventoryId = Number(req.params.id);
 
         if (!Number.isSafeInteger(inventoryId) || inventoryId <= 0) {
@@ -738,7 +713,7 @@ router.delete('/inventory/:id', async (req, res) => {
         }
 
         const [result] = await employeeDb.query(
-            'DELETE FROM Inventory WHERE inventory_id = ?',
+            'DELETE FROM inventory WHERE inventory_id = ?',
             [inventoryId]
         );
 
@@ -755,7 +730,6 @@ router.delete('/inventory/:id', async (req, res) => {
         });
 
     } catch (error) {
-
         console.error('Delete inventory error:', error);
 
         res.status(500).json({
