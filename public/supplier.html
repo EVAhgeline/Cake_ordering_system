@@ -5,318 +5,400 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Supplier Management | Sweet Custom</title>
+    <title>Employee Dashboard | Sweet Custom</title>
 
     <link rel="stylesheet" href="employee-style.css">
-
-    <style>
-        .supplier-section {
-            background: white;
-            padding: 25px;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .supplier-section h2 {
-            margin-bottom: 20px;
-        }
-
-        .supplier-form {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 15px;
-        }
-
-        .supplier-form input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        .supplier-form .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .supplier-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .supplier-actions button,
-        .supplier-table button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .save-btn {
-            background: #8b5e83;
-            color: white;
-        }
-
-        .cancel-btn {
-            background: #777;
-            color: white;
-        }
-
-        .edit-btn {
-            background: #e5a93d;
-            color: white;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .supplier-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 650px;
-        }
-
-        .supplier-table th,
-        .supplier-table td {
-            padding: 13px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-
-        .supplier-table th {
-            background: #f5edf4;
-        }
-
-        .supplier-table td button {
-            margin: 3px;
-        }
-
-        #message {
-            margin: 12px 0;
-            font-weight: 500;
-        }
-
-        .page-links {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .page-links a {
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            background: #8b5e83;
-            color: white;
-        }
-
-        @media (max-width: 650px) {
-            .supplier-form {
-                grid-template-columns: 1fr;
-            }
-
-            .supplier-form .full-width {
-                grid-column: auto;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <h2>🍰 Sweet Custom</h2>
-
         <p class="sidebar-label">EMPLOYEE PANEL</p>
 
-        <a href="/employee.html" class="nav-link">
+        <a href="employee.html" class="nav-link active">
             🏠 Dashboard
         </a>
 
-        <a href="/employees.html" class="nav-link">
+        <a href="employees.html" class="nav-link">
             👩‍💼 Employees
         </a>
 
-        <a href="/employee-inventory.html" class="nav-link">
+        <a href="employee-inventory.html" class="nav-link">
             📦 Inventory
         </a>
 
-        <a href="/supplier.html" class="nav-link active">
+        <a href="supplier.html" class="nav-link">
             🚚 Suppliers
         </a>
 
-        <a href="/supplier-inventory.html" class="nav-link">
+        <a href="supplier-inventory.html" class="nav-link">
             📋 Supplier Inventory
         </a>
 
         <button type="button" class="logout-btn" onclick="logout()">
             ↪ Logout
         </button>
-
     </aside>
+
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
 
-        <!-- HEADER -->
+        <!-- TOPBAR -->
         <header class="topbar">
             <div>
-                <h1>Supplier Management</h1>
-                <p>Add, view, update, and manage suppliers.</p>
+                <h1>Dashboard</h1>
+                <p>Employee, Inventory and Supplier Management</p>
+            </div>
+
+            <div class="profile">
+                Welcome,
+                <strong id="employeeName">Employee</strong>
             </div>
         </header>
 
-        <!-- PAGE LINKS -->
-        <div class="page-links">
 
-            <a href="/employee.html">
-                ← Back to Dashboard
-            </a>
+        <!-- WELCOME BANNER -->
+        <section class="welcome-banner">
+            <h2>Welcome to Sweet Custom!</h2>
 
-            <a href="/supplier-inventory.html">
-                📋 View Supplier Inventory
-            </a>
+            <p>
+                Manage your employees, monitor your cake supplies,
+                organize your suppliers, and track supplier inventory
+                in one place.
+            </p>
+        </section>
 
-        </div>
 
-        <!-- SUPPLIER FORM -->
-        <section class="supplier-section">
+        <!-- DASHBOARD STATISTICS -->
+        <section class="stats-container">
 
-            <h2 id="formTitle">Add New Supplier</h2>
+            <div class="stat-card">
+                <div class="stat-icon">👩‍💼</div>
+                <h3>Total Employees</h3>
+                <h1 id="employeeCount">0</h1>
+            </div>
 
-            <form id="supplierForm" class="supplier-form">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <h3>Inventory Items</h3>
+                <h1 id="inventoryCount">0</h1>
+            </div>
 
-                <input
-                    type="hidden"
-                    id="supplierId"
-                >
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <h3>Low Stock Items</h3>
+                <h1 id="lowStockCount">0</h1>
+            </div>
 
-                <input
-                    type="text"
-                    id="supplierName"
-                    placeholder="Supplier Name"
-                    required
-                    maxlength="150"
-                >
-
-                <input
-                    type="text"
-                    id="supplierContact"
-                    placeholder="Contact Number"
-                    maxlength="50"
-                >
-
-                <input
-                    type="email"
-                    id="supplierEmail"
-                    placeholder="Email Address"
-                    maxlength="150"
-                >
-
-                <input
-                    type="text"
-                    id="supplierAddress"
-                    placeholder="Supplier Address"
-                    maxlength="255"
-                >
-
-                <div class="supplier-actions full-width">
-
-                    <button
-                        type="submit"
-                        class="save-btn"
-                        id="submitBtn"
-                    >
-                        Add Supplier
-                    </button>
-
-                    <button
-                        type="button"
-                        class="cancel-btn"
-                        id="cancelBtn"
-                        hidden
-                    >
-                        Cancel Edit
-                    </button>
-
-                </div>
-
-            </form>
+            <div class="stat-card">
+                <div class="stat-icon">🚚</div>
+                <h3>Total Suppliers</h3>
+                <h1 id="supplierCount">0</h1>
+            </div>
 
         </section>
 
-        <!-- SUPPLIER LIST -->
-        <section class="supplier-section">
 
-            <h2>Supplier List</h2>
+        <!-- QUICK ACCESS -->
+        <section class="quick-links">
 
-            <p id="message" role="status" aria-live="polite">
-                Loading suppliers...
-            </p>
+            <h2>Quick Access</h2>
 
-            <div class="table-container">
+            <div class="quick-grid">
 
-                <table class="supplier-table">
+                <!-- EMPLOYEE MANAGEMENT -->
+                <a href="employees.html" class="quick-card">
+                    <span>👩‍💼</span>
+                    <h3>Employee Management</h3>
+                    <p>View and manage employee records.</p>
+                    <strong>Open Employees →</strong>
+                </a>
 
-                    <thead>
-                        <tr>
-                            <th>Supplier ID</th>
-                            <th>Supplier Name</th>
-                            <th>Contact</th>
-                            <th>Email</th>
-                            <th>Address</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
 
-                    <tbody id="supplierList">
+                <!-- INVENTORY MANAGEMENT -->
+                <a href="employee-inventory.html" class="quick-card">
+                    <span>📦</span>
+                    <h3>Inventory Management</h3>
+                    <p>Monitor cake ingredients and supplies.</p>
+                    <strong>Open Inventory →</strong>
+                </a>
 
-                        <tr>
-                            <td colspan="6">
-                                Loading suppliers...
-                            </td>
-                        </tr>
 
-                    </tbody>
+                <!-- SUPPLIER MANAGEMENT -->
+                <a href="supplier.html" class="quick-card">
+                    <span>🚚</span>
+                    <h3>Supplier Management</h3>
+                    <p>Add, view, edit, and manage suppliers.</p>
+                    <strong>Open Suppliers →</strong>
+                </a>
 
-                </table>
+
+                <!-- SUPPLIER INVENTORY -->
+                <a href="supplier-inventory.html" class="quick-card">
+                    <span>📋</span>
+                    <h3>Supplier Inventory</h3>
+                    <p>View ingredients and their assigned suppliers.</p>
+                    <strong>Open Supplier Inventory →</strong>
+                </a>
 
             </div>
 
         </section>
 
+
+        <!-- DASHBOARD MESSAGE -->
+        <p id="dashboardMessage" role="status"></p>
+
     </main>
 
-    <!-- SUPPLIER MANAGEMENT JAVASCRIPT -->
-    <script src="supplier.js"></script>
 
-    <!-- LOGOUT -->
+    <!-- DASHBOARD JAVASCRIPT -->
     <script>
-        function logout() {
-            if (!confirm('Are you sure you want to log out?')) {
-                return;
+
+        const API_URL = '/api/auth';
+
+        const SUPPLIER_API_URL =
+            'http://localhost:12067/api/suppliers';
+
+
+        // ==========================================
+        // AUTHENTICATION
+        // ==========================================
+
+        function getEmployeeToken() {
+            return sessionStorage.getItem('employeeToken');
+        }
+
+
+        function getAuthHeaders() {
+
+            const token = getEmployeeToken();
+
+            if (!token) {
+                window.location.href = '/index.html';
+                return null;
             }
+
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+
+        // ==========================================
+        // EMPLOYEE INFORMATION
+        // ==========================================
+
+        function loadEmployeeName() {
+
+            document.getElementById('employeeName').textContent =
+                sessionStorage.getItem('employeeName') || 'Employee';
+        }
+
+
+        // ==========================================
+        // API RESPONSE HELPER
+        // ==========================================
+
+        async function getAPIData(url) {
+
+            const headers = getAuthHeaders();
+
+            if (!headers) {
+                throw new Error('Employee authentication required.');
+            }
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers
+            });
+
+            const text = await response.text();
+
+            let result;
+
+            try {
+                result = text ? JSON.parse(text) : {};
+            } catch {
+                throw new Error('Invalid response from server.');
+            }
+
+
+            // HANDLE EXPIRED SESSION
+            if (response.status === 401 || response.status === 403) {
+
+                sessionStorage.removeItem('employeeToken');
+                sessionStorage.removeItem('employeeName');
+                sessionStorage.removeItem('employeeID');
+                sessionStorage.removeItem('token');
+
+                alert(
+                    'Your employee session has expired. Please log in again.'
+                );
+
+                window.location.href = '/index.html';
+
+                throw new Error('Employee authentication required.');
+            }
+
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message ||
+                    result.error ||
+                    'Unable to load dashboard data.'
+                );
+            }
+
+
+            return Array.isArray(result)
+                ? result
+                : result.data || [];
+        }
+
+
+        // ==========================================
+        // LOAD SUPPLIER COUNT
+        // ==========================================
+
+        async function loadSupplierCount() {
+
+            const countElement =
+                document.getElementById('supplierCount');
+
+            try {
+
+                const response = await fetch(SUPPLIER_API_URL);
+
+                if (!response.ok) {
+                    throw new Error('Unable to load suppliers.');
+                }
+
+                const suppliers = await response.json();
+
+                if (!Array.isArray(suppliers)) {
+                    throw new Error('Invalid supplier data.');
+                }
+
+                countElement.textContent = suppliers.length;
+
+            } catch (error) {
+
+                console.error('Supplier loading error:', error);
+
+                countElement.textContent = '—';
+            }
+        }
+
+
+        // ==========================================
+        // LOAD DASHBOARD INFORMATION
+        // ==========================================
+
+        async function loadDashboard() {
+
+            const message =
+                document.getElementById('dashboardMessage');
+
+            try {
+
+                message.textContent =
+                    'Loading dashboard information...';
+
+
+                const [
+                    employees,
+                    inventory,
+                    lowStock
+                ] = await Promise.all([
+
+                    getAPIData(`${API_URL}/employees`),
+
+                    getAPIData(`${API_URL}/inventory`),
+
+                    getAPIData(`${API_URL}/inventory-low-stock`)
+
+                ]);
+
+
+                // UPDATE EMPLOYEE COUNT
+                document.getElementById('employeeCount').textContent =
+                    employees.length;
+
+
+                // UPDATE INVENTORY COUNT
+                document.getElementById('inventoryCount').textContent =
+                    inventory.length;
+
+
+                // UPDATE LOW STOCK COUNT
+                document.getElementById('lowStockCount').textContent =
+                    lowStock.length;
+
+
+                message.textContent = '';
+
+            } catch (error) {
+
+                console.error('Dashboard error:', error);
+
+                message.textContent =
+                    'Unable to load dashboard information: ' +
+                    error.message;
+            }
+        }
+
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+
+        function logout() {
+
+            const confirmed = confirm(
+                'Are you sure you want to log out?'
+            );
+
+            if (!confirmed) return;
+
 
             sessionStorage.removeItem('employeeToken');
             sessionStorage.removeItem('employeeName');
             sessionStorage.removeItem('employeeID');
             sessionStorage.removeItem('token');
 
-            window.location.replace('/index.html');
+
+            window.location.href = '/index.html';
         }
+
+
+        // ==========================================
+        // INITIALIZE DASHBOARD
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            if (!getEmployeeToken()) {
+
+                alert('Please log in as an employee first.');
+
+                window.location.href = '/index.html';
+
+                return;
+            }
+
+            loadEmployeeName();
+
+            loadDashboard();
+
+            loadSupplierCount();
+
+        });
+
     </script>
 
 </body>
