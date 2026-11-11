@@ -1,6 +1,21 @@
 
 const API_URL = '/api/auth';
 
+function getAuthHeaders() {
+    const token = sessionStorage.getItem('employeeToken');
+
+    if (!token) {
+        alert('Please log in first.');
+        window.location.href = '/employee-login.html';
+        return null;
+    }
+
+    return {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
+}
+
 let inventory = [];
 let showLowStockOnly = false;
 
@@ -71,7 +86,14 @@ async function loadInventory() {
             </tr>
         `;
 
-        const response = await fetch(`${API_URL}/inventory`);
+      const headers = getAuthHeaders();
+            if (!headers) return;
+
+            const response = await fetch(`${API_URL}/inventory`, {
+                method: 'GET',
+                headers
+            });
+
         const result = await readResponse(response);
 
         inventory = Array.isArray(result)
@@ -269,13 +291,14 @@ async function saveInventory(event) {
             ? `${API_URL}/inventory/${inventoryId}`
             : `${API_URL}/inventory`;
 
-        const response = await fetch(url, {
-            method: inventoryId ? 'PUT' : 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(item)
-        });
+        const headers = getAuthHeaders();
+            if (!headers) return;
+
+            const response = await fetch(url, {
+                method: inventoryId ? 'PUT' : 'POST',
+                headers,
+                body: JSON.stringify(item)
+            });
 
         const result = await readResponse(response);
 
@@ -355,9 +378,12 @@ async function deleteInventory(id) {
     if (!confirmed) return;
 
     try {
+        const headers = getAuthHeaders();
+        if (!headers) return;
+
         const response = await fetch(
             `${API_URL}/inventory/${id}`,
-            { method: 'DELETE' }
+            { method: 'DELETE', headers }
         );
 
         const result = await readResponse(response);
