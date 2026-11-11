@@ -2,63 +2,84 @@
 const API_URL = '/api/suppliers';
 
 // =====================================
-// LOAD SUPPLIER INVENTORY
+// API REQUEST
 // =====================================
 
-async function loadInventory() {
-    const inventoryList = document.getElementById('inventoryList');
-    const message = document.getElementById('message');
+async function fetchSuppliers() {
+    const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json'
+        }
+    });
 
-    inventoryList.innerHTML =
-        '<tr><td colspan="5">Loading inventory...</td></tr>';
+    const responseText = await response.text();
+
+    let result;
 
     try {
-        const response = await fetch(API_URL);
+        result = responseText ? JSON.parse(responseText) : [];
+    } catch {
+        throw new Error('Invalid response received from the supplier server.');
+    }
 
-        // Check if the server returned an error
-        if (!response.ok) {
-            throw new Error(
-                `Server error: ${response.status} ${response.statusText}`
-            );
-        }
+    if (!response.ok) {
+        throw new Error(
+            result.message ||
+            result.error ||
+            `Unable to load suppliers. Status: ${response.status}`
+        );
+    }
 
-        // Verify that the response is JSON
-        const contentType = response.headers.get('content-type') || '';
+    if (Array.isArray(result)) {
+        return result;
+    }
 
-        if (!contentType.includes('application/json')) {
-            const responseText = await response.text();
+    if (result && Array.isArray(result.data)) {
+        return result.data;
+    }
 
-            console.error('Unexpected server response:', responseText);
+    throw new Error('Invalid supplier data received from the server.');
+}
 
-            throw new Error(
-                'The API returned HTML instead of JSON. ' +
-                'Check the backend URL and server routes.'
-            );
-        }
+// =====================================
+// LOAD SUPPLIERS
+// =====================================
 
-        const inventory = await response.json();
+async function loadSuppliers() {
+    const supplierList = document.getElementById('supplierList');
+    const message = document.getElementById('message');
 
-        if (!Array.isArray(inventory)) {
-            throw new Error('Invalid inventory data received.');
-        }
+    if (!supplierList) {
+        console.error('Supplier table body #supplierList was not found.');
+        return;
+    }
 
-        inventoryList.innerHTML = '';
+    supplierList.innerHTML =
+        '<tr><td colspan="5">Loading suppliers...</td></tr>';
 
-        if (inventory.length === 0) {
-            inventoryList.innerHTML =
-                '<tr><td colspan="5">No inventory records found.</td></tr>';
+    if (message) message.textContent = '';
+
+    try {
+        const suppliers = await fetchSuppliers();
+
+        supplierList.innerHTML = '';
+
+        if (suppliers.length === 0) {
+            supplierList.innerHTML =
+                '<tr><td colspan="5">No suppliers found.</td></tr>';
             return;
         }
 
-        inventory.forEach(item => {
+        suppliers.forEach(supplier => {
             const row = document.createElement('tr');
 
             const values = [
-                item.inventory_id,
-                item.item_name,
-                item.quantity,
-                item.unit,
-                item.supplier_name || 'Not assigned'
+                supplier.supplier_id ?? supplier.id ?? '',
+                supplier.supplier_name ?? supplier.name ?? '',
+                supplier.contact_person ?? '',
+                supplier.phone ?? supplier.contact_number ?? '',
+                supplier.email ?? ''
             ];
 
             values.forEach(value => {
@@ -67,19 +88,29 @@ async function loadInventory() {
                 row.appendChild(cell);
             });
 
-            inventoryList.appendChild(row);
+            supplierList.appendChild(row);
         });
 
-        message.textContent = '';
+        console.log(`${suppliers.length} suppliers loaded successfully.`);
 
     } catch (error) {
-        console.error('Inventory loading error:', error);
+        console.error('Supplier loading error:', error);
 
-        inventoryList.innerHTML =
-            '<tr><td colspan="5">Failed to load inventory.</td></tr>';
+        supplierList.innerHTML =
+            '<tr><td colspan="5">Failed to load suppliers.</td></tr>';
 
-        message.textContent = error.message;
+        if (message) {
+            message.textContent = error.message;
+        }
     }
+}
+
+// =====================================
+// REFRESH SUPPLIERS
+// =====================================
+
+async function refreshSuppliers() {
+    await loadSuppliers();
 }
 
 // =====================================
@@ -87,5 +118,12 @@ async function loadInventory() {
 // =====================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadInventory();
+    const refreshButton =
+        document.getElementById('refreshSuppliers');
+
+    if (refreshButton) {
+        refreshButton.addEventListener('click', refreshSuppliers);
+    }
+
+    loadSuppliers();
 });
