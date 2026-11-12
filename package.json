@@ -1,7 +1,7 @@
 {
   "name": "cake-design",
   "version": "1.0.0",
-  "description": "| Member                 | GitHub Username                | Tables                                          | Screens (CRUD)                     | Join Report and Type                                                   | Feature Role                               |\r | ---------------------- | ------------------------------ | ----------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------ |\r | Mapula, Dhanica D.     | `dekay157`                     | Customer, Custom_Order, Order_Detail, Payment   | Order and Payment Management       | Orders and Payments (INNER JOIN)                                       | Core and Transactions                      |\r | Manico, Grycell Jen F. | `EVAhgeline`                   | Cake_Design, Flavor, Size                       | Cake Customization Management      | Cake Designs and Flavors (INNER JOIN)                                  | Unique Feature (Rules)                     |\r | Ontolan, Kenneth       | `kennethsevillanoontolan-spec` | Employee, Ingredient, Inventory                 | Employee and Inventory Management  | Ingredients and Inventory (LEFT JOIN)                                  | Unique Feature (Ingredients and Inventory) |\r | Morallo, Kriztel Joy   | `krizteljoy10-png`             | Supplier, Purchase_Order, Purchase_Order_Detail | Supplier and Purchasing Management | Suppliers and Purchase Orders (FULL OUTER JOIN equivalent using UNION) | Reports and Purchasing                     |",
+  "description": "",
   "main": "design.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -22,13 +22,5 @@
     "multer": "^2.5.0",
     "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.24.6"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/EVAhgeline/Cake_ordering_system.git"
-  },
-  "bugs": {
-    "url": "https://github.com/EVAhgeline/Cake_ordering_system/issues"
-  },
-  "homepage": "https://github.com/EVAhgeline/Cake_ordering_system#readme"
+  }
 }

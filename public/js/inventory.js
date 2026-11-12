@@ -5,29 +5,10 @@ let inventory = [];
 let showLowStockOnly = false;
 
 // ==========================================
-// AUTHENTICATION
-// ==========================================
-
-function getAuthHeaders() {
-    const token = sessionStorage.getItem('employeeToken');
-
-    if (!token) {
-        throw new Error('Please log in as an employee first.');
-    }
-
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-}
-
-
-// ==========================================
 // INITIALIZATION
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-
     document.getElementById('inventoryForm')
         .addEventListener('submit', saveInventory);
 
@@ -52,13 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInventory();
 });
 
-
 // ==========================================
 // API RESPONSE HELPER
 // ==========================================
 
 async function readResponse(response) {
-
     const text = await response.text();
 
     let data;
@@ -71,21 +50,6 @@ async function readResponse(response) {
         );
     }
 
-    // Handle expired or invalid employee session
-    if (response.status === 401 || response.status === 403) {
-
-        sessionStorage.removeItem('employeeToken');
-        sessionStorage.removeItem('employeeName');
-        sessionStorage.removeItem('employeeID');
-        sessionStorage.removeItem('token');
-
-        alert('Your employee session has expired. Please log in again.');
-
-        window.location.href = '/index.html';
-
-        throw new Error('Employee authentication required.');
-    }
-
     if (!response.ok) {
         throw new Error(data.message || 'Request failed.');
     }
@@ -93,28 +57,21 @@ async function readResponse(response) {
     return data;
 }
 
-
 // ==========================================
 // LOAD INVENTORY FROM MYSQL
 // ==========================================
 
 async function loadInventory() {
-
     const table = document.getElementById('inventoryTableBody');
 
     try {
-
         table.innerHTML = `
             <tr>
                 <td colspan="10">Loading inventory...</td>
             </tr>
         `;
 
-        const response = await fetch(`${API_URL}/inventory`, {
-            method: 'GET',
-            headers: getAuthHeaders()
-        });
-
+        const response = await fetch(`${API_URL}/inventory`);
         const result = await readResponse(response);
 
         inventory = Array.isArray(result)
@@ -125,7 +82,6 @@ async function loadInventory() {
         searchInventory();
 
     } catch (error) {
-
         console.error('Inventory loading error:', error);
 
         table.innerHTML = `
@@ -139,13 +95,11 @@ async function loadInventory() {
     }
 }
 
-
 // ==========================================
 // UPDATE DASHBOARD STATISTICS
 // ==========================================
 
 function updateStatistics() {
-
     const lowStock = inventory.filter(item =>
         Number(item.quantity) <= Number(item.reorder_level)
     );
@@ -157,28 +111,23 @@ function updateStatistics() {
         lowStock.length;
 }
 
-
 // ==========================================
 // DISPLAY INVENTORY
 // ==========================================
 
 function displayInventory(data) {
-
     const table = document.getElementById('inventoryTableBody');
 
     if (data.length === 0) {
-
         table.innerHTML = `
             <tr>
                 <td colspan="10">No inventory records found.</td>
             </tr>
         `;
-
         return;
     }
 
     table.innerHTML = data.map(item => {
-
         const isLowStock =
             Number(item.quantity) <= Number(item.reorder_level);
 
@@ -229,22 +178,18 @@ function displayInventory(data) {
                 </td>
             </tr>
         `;
-
     }).join('');
 }
-
 
 // ==========================================
 // SEARCH AND FILTER INVENTORY
 // ==========================================
 
 function searchInventory() {
-
     const search = document.getElementById('inventorySearch')
         .value.toLowerCase();
 
     let filtered = inventory.filter(item => {
-
         return (
             String(item.inventory_id).includes(search) ||
             String(item.item_name || '').toLowerCase().includes(search) ||
@@ -252,27 +197,22 @@ function searchInventory() {
             String(item.supplier_name || '').toLowerCase().includes(search) ||
             String(item.employee_name || '').toLowerCase().includes(search)
         );
-
     });
 
     if (showLowStockOnly) {
-
         filtered = filtered.filter(item =>
             Number(item.quantity) <= Number(item.reorder_level)
         );
-
     }
 
     displayInventory(filtered);
 }
-
 
 // ==========================================
 // ADD OR UPDATE INVENTORY
 // ==========================================
 
 async function saveInventory(event) {
-
     event.preventDefault();
 
     const inventoryId =
@@ -309,10 +249,8 @@ async function saveInventory(event) {
     const message = document.getElementById('formMessage');
 
     if (!item.item_name || !item.unit) {
-
         message.textContent =
             'Please complete the item name and unit.';
-
         return;
     }
 
@@ -321,27 +259,22 @@ async function saveInventory(event) {
         !Number.isFinite(reorderLevel) || reorderLevel < 0 ||
         !Number.isFinite(unitCost) || unitCost < 0
     ) {
-
         message.textContent =
             'Quantity, reorder level, and unit cost must be valid non-negative numbers.';
-
         return;
     }
 
     try {
-
         const url = inventoryId
             ? `${API_URL}/inventory/${inventoryId}`
             : `${API_URL}/inventory`;
 
         const response = await fetch(url, {
-
             method: inventoryId ? 'PUT' : 'POST',
-
-            headers: getAuthHeaders(),
-
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(item)
-
         });
 
         const result = await readResponse(response);
@@ -350,32 +283,25 @@ async function saveInventory(event) {
             result.message || 'Inventory item saved successfully!';
 
         resetForm();
-
         await loadInventory();
 
     } catch (error) {
-
         console.error('Save inventory error:', error);
-
         message.textContent = error.message;
     }
 }
-
 
 // ==========================================
 // EDIT INVENTORY
 // ==========================================
 
 function editInventory(id) {
-
     const item = inventory.find(
         record => Number(record.inventory_id) === Number(id)
     );
 
     if (!item) {
-
         alert('Inventory item not found.');
-
         return;
     }
 
@@ -417,13 +343,11 @@ function editInventory(id) {
     });
 }
 
-
 // ==========================================
 // DELETE INVENTORY
 // ==========================================
 
 async function deleteInventory(id) {
-
     const confirmed = confirm(
         'Are you sure you want to delete this inventory item?'
     );
@@ -431,13 +355,9 @@ async function deleteInventory(id) {
     if (!confirmed) return;
 
     try {
-
         const response = await fetch(
             `${API_URL}/inventory/${id}`,
-            {
-                method: 'DELETE',
-                headers: getAuthHeaders()
-            }
+            { method: 'DELETE' }
         );
 
         const result = await readResponse(response);
@@ -445,30 +365,24 @@ async function deleteInventory(id) {
         alert(result.message || 'Inventory item deleted successfully!');
 
         resetForm();
-
         await loadInventory();
 
     } catch (error) {
-
         console.error('Delete inventory error:', error);
-
         alert(error.message);
     }
 }
-
 
 // ==========================================
 // RESET FORM
 // ==========================================
 
 function resetForm() {
-
     document.getElementById('inventoryForm').reset();
 
     document.getElementById('inventoryId').value = '';
 
     document.getElementById('reorderLevel').value = 5;
-
     document.getElementById('unitCost').value = 0;
 
     document.getElementById('formTitle').textContent =
@@ -480,13 +394,11 @@ function resetForm() {
     document.getElementById('formMessage').textContent = '';
 }
 
-
 // ==========================================
 // ESCAPE HTML
 // ==========================================
 
 function escapeHTML(value) {
-
     return String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -494,5 +406,4 @@ function escapeHTML(value) {
         '"': '&quot;',
         "'": '&#39;'
     })[char]);
-
 }
