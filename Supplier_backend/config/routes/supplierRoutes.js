@@ -8,7 +8,7 @@ const db = require('../db');
 router.get('/', async (req, res) => {
     try {
         const [results] = await db.query(
-            'SELECT * FROM Supplier ORDER BY supplier_id DESC'
+            'SELECT * FROM supplier ORDER BY supplier_id DESC'
         );
 
         res.json(results);
@@ -27,6 +27,7 @@ router.get('/', async (req, res) => {
 // =====================================
 router.get('/inventory', async (req, res) => {
     try {
+        // Restored the LEFT JOIN using lowercase table names to match MySQL safely
         const [results] = await db.query(`
             SELECT
                 i.inventory_id,
@@ -35,8 +36,8 @@ router.get('/inventory', async (req, res) => {
                 i.unit,
                 i.supplier_id,
                 s.supplier_name
-            FROM Inventory i
-            LEFT JOIN Supplier s
+            FROM inventory i
+            LEFT JOIN supplier s
                 ON i.supplier_id = s.supplier_id
             ORDER BY i.inventory_id DESC
         `);
@@ -51,6 +52,7 @@ router.get('/inventory', async (req, res) => {
         });
     }
 });
+
 // =====================================
 // ADD NEW SUPPLIER
 // =====================================
@@ -65,7 +67,7 @@ router.post('/', async (req, res) => {
         }
 
         const [result] = await db.query(
-            `INSERT INTO Supplier
+            `INSERT INTO supplier
             (supplier_name, contact, email, address)
             VALUES (?, ?, ?, ?)`,
             [
@@ -111,7 +113,7 @@ router.put('/:id', async (req, res) => {
         }
 
         const [result] = await db.query(
-            `UPDATE Supplier
+            `UPDATE supplier
              SET supplier_name = ?,
                  contact = ?,
                  email = ?,
@@ -160,7 +162,7 @@ router.delete('/:id', async (req, res) => {
 
         // Check if supplier exists
         const [suppliers] = await db.query(
-            'SELECT supplier_id FROM Supplier WHERE supplier_id = ?',
+            'SELECT supplier_id FROM supplier WHERE supplier_id = ?',
             [supplierId]
         );
 
@@ -172,7 +174,7 @@ router.delete('/:id', async (req, res) => {
 
         // Check whether inventory is assigned to this supplier
         const [inventory] = await db.query(
-            'SELECT COUNT(*) AS total FROM Inventory WHERE supplier_id = ?',
+            'SELECT COUNT(*) AS total FROM inventory WHERE supplier_id = ?',
             [supplierId]
         );
 
@@ -183,7 +185,7 @@ router.delete('/:id', async (req, res) => {
         }
 
         await db.query(
-            'DELETE FROM Supplier WHERE supplier_id = ?',
+            'DELETE FROM supplier WHERE supplier_id = ?',
             [supplierId]
         );
 

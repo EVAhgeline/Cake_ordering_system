@@ -1,12 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Supplier Management | Sweet Custom</title>
-
     <link rel="stylesheet" href="employee-style.css">
 </head>
 
@@ -48,7 +45,7 @@
         <header class="topbar">
             <div>
                 <h1>Supplier Management</h1>
-                <p>View and manage your suppliers</p>
+                <p>Add, view, edit, and manage your product suppliers.</p>
             </div>
 
             <div class="profile">
@@ -57,84 +54,271 @@
             </div>
         </header>
 
-        <!-- PAGE CONTENT -->
-        <section class="welcome-banner">
-            <h2>Supplier Records</h2>
-            <p>
-                View your registered suppliers and their contact information.
-            </p>
+        <!-- SUPPLIER FORM PANEL -->
+        <section class="form-panel">
+            <h2 id="formTitle">Add New Supplier</h2>
+            
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name *</label>
+                        <input type="text" id="supplierName" required placeholder="e.g. ABC Baking Supplies">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplierContact">Contact Number</label>
+                        <input type="text" id="supplierContact" placeholder="e.g. 09123456789">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplierEmail">Email Address</label>
+                        <input type="email" id="supplierEmail" placeholder="e.g. supplier@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplierAddress">Address</label>
+                        <input type="text" id="supplierAddress" placeholder="e.g. Cebu City">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="submitBtn">Save Supplier</button>
+                    <button type="button" class="cancel-btn" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+            <p id="formMessage" class="message"></p>
         </section>
 
-        <!-- SUPPLIER LIST -->
-        <section class="quick-links">
-
-            <div class="supplier-header">
-                <h2>Registered Suppliers</h2>
-
-                <button
-                    type="button"
-                    id="refreshSuppliers"
-                    class="logout-btn"
-                >
-                    ↻ Refresh Suppliers
-                </button>
+        <!-- SUPPLIERS TABLE -->
+        <section class="table-container">
+            <div class="toolbar">
+                <h2>Supplier List</h2>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search suppliers..." onkeyup="filterSuppliers()">
             </div>
 
-            <p id="message" role="status" aria-live="polite"></p>
-
-            <div style="width: 100%; overflow-x: auto; margin-top: 20px;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr>
-                            <th>Supplier ID</th>
-                            <th>Supplier Name</th>
-                            <th>Contact Person</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="supplierList">
-                        <tr>
-                            <td colspan="5">Loading suppliers...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Supplier Name</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">Loading suppliers...</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
-        <p id="supplierPageMessage" role="status"></p>
-
+        <p id="dashboardMessage" role="status"></p>
     </main>
 
-    <!-- SUPPLIER JAVASCRIPT -->
-    <script src="supplier.js" defer></script>
-
-    <!-- PAGE FUNCTIONS -->
+    <!-- SUPPLIER MANAGEMENT JAVASCRIPT -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const API_URL = '/api/suppliers';
+        let allSuppliers = [];
 
-            const employeeName =
-                sessionStorage.getItem('employeeName') || 'Employee';
+        function getEmployeeToken() {
+            return sessionStorage.getItem('employeeToken') || sessionStorage.getItem('token');
+        }
 
+        function loadEmployeeName() {
             document.getElementById('employeeName').textContent =
-                employeeName;
+                sessionStorage.getItem('employeeName') || 'Employee';
+        }
 
-            document.getElementById('logoutButton')
-                .addEventListener('click', () => {
+        // ==========================================
+        // FETCH AND DISPLAY SUPPLIERS
+        // ==========================================
+        async function loadSuppliers() {
+            const tbody = document.getElementById('supplierTableBody');
+            const message = document.getElementById('dashboardMessage');
 
-                    if (!confirm('Are you sure you want to log out?')) {
-                        return;
-                    }
-
-                    sessionStorage.removeItem('employeeToken');
-                    sessionStorage.removeItem('employeeName');
-                    sessionStorage.removeItem('employeeID');
-                    sessionStorage.removeItem('token');
-
-                    window.location.href = './index.html';
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
                 });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load suppliers from server.');
+                }
+
+                const data = await response.json();
+                allSuppliers = Array.isArray(data) ? data : (data.data || []);
+
+                renderSuppliers(allSuppliers);
+                message.textContent = '';
+
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #d9534f;">Failed to load suppliers.</td></tr>';
+                message.textContent = error.message;
+            }
+        }
+
+        function renderSuppliers(suppliers) {
+            const tbody = document.getElementById('supplierTableBody');
+            tbody.innerHTML = '';
+
+            if (suppliers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No suppliers found.</td></tr>';
+                return;
+            }
+
+            suppliers.forEach(s => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${s.supplier_id ?? ''}</td>
+                    <td><strong>${escapeHtml(s.supplier_name ?? '')}</strong></td>
+                    <td>${escapeHtml(s.contact ?? '—')}</td>
+                    <td>${escapeHtml(s.email ?? '—')}</td>
+                    <td>${escapeHtml(s.address ?? '—')}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editSupplier(${s.supplier_id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteSupplier(${s.supplier_id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ==========================================
+        // ADD / UPDATE SUPPLIER FORM SUBMISSION
+        // ==========================================
+        document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('supplierId').value;
+            const supplier_name = document.getElementById('supplierName').value.trim();
+            const contact = document.getElementById('supplierContact').value.trim();
+            const email = document.getElementById('supplierEmail').value.trim();
+            const address = document.getElementById('supplierAddress').value.trim();
+            const formMessage = document.getElementById('formMessage');
+
+            const payload = { supplier_name, contact, email, address };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to save supplier.');
+                }
+
+                formMessage.style.color = '#47775d';
+                formMessage.textContent = result.message || 'Supplier saved successfully!';
+
+                resetForm();
+                loadSuppliers();
+
+            } catch (error) {
+                console.error('Save error:', error);
+                formMessage.style.color = '#d9534f';
+                formMessage.textContent = error.message;
+            }
+        });
+
+        // ==========================================
+        // EDIT & DELETE ACTIONS
+        // ==========================================
+        function editSupplier(id) {
+            const supplier = allSuppliers.find(s => s.supplier_id === id);
+            if (!supplier) return;
+
+            document.getElementById('supplierId').value = supplier.supplier_id;
+            document.getElementById('supplierName').value = supplier.supplier_name || '';
+            document.getElementById('supplierContact').value = supplier.contact || '';
+            document.getElementById('supplierEmail').value = supplier.email || '';
+            document.getElementById('supplierAddress').value = supplier.address || '';
+
+            document.getElementById('formTitle').textContent = 'Edit Supplier';
+            document.getElementById('submitBtn').textContent = 'Update Supplier';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteSupplier(id) {
+            if (!confirm('Are you sure you want to delete this supplier?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to delete supplier.');
+                }
+
+                loadSuppliers();
+
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierId').value = '';
+            document.getElementById('formTitle').textContent = 'Add New Supplier';
+            document.getElementById('submitBtn').textContent = 'Save Supplier';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('formMessage').textContent = '';
+        }
+
+        function filterSuppliers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allSuppliers.filter(s => 
+                (s.supplier_name && s.supplier_name.toLowerCase().includes(query)) ||
+                (s.contact && s.contact.toLowerCase().includes(query)) ||
+                (s.email && s.email.toLowerCase().includes(query)) ||
+                (s.address && s.address.toLowerCase().includes(query))
+            );
+            renderSuppliers(filtered);
+        }
+
+        function logout() {
+            if (!confirm('Are you sure you want to log out?')) return;
+            sessionStorage.clear();
+            window.location.href = '/index.html';
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // ==========================================
+        // INITIALIZE PAGE
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!getEmployeeToken()) {
+                alert('Please log in as an employee first.');
+                window.location.href = '/index.html';
+                return;
+            }
+
+            loadEmployeeName();
+            loadSuppliers();
         });
     </script>
 

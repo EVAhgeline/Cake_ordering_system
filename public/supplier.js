@@ -1,15 +1,21 @@
 
-const API_URL = '/api/suppliers';
+const API_URL = '/api/suppliers/inventory';
 
 // =====================================
-// API REQUEST
+// FETCH SUPPLIER INVENTORY
 // =====================================
 
-async function fetchSuppliers() {
+async function fetchSupplierInventory() {
+    // 1. Retrieve the auth token from session storage
+    const token = sessionStorage.getItem('employeeToken') || sessionStorage.getItem('token');
+
     const response = await fetch(API_URL, {
         method: 'GET',
         headers: {
-            Accept: 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            // 2. Include the Authorization header so the backend allows the request
+            'Authorization': token ? `Bearer ${token}` : ''
         }
     });
 
@@ -20,14 +26,22 @@ async function fetchSuppliers() {
     try {
         result = responseText ? JSON.parse(responseText) : [];
     } catch {
-        throw new Error('Invalid response received from the supplier server.');
+        throw new Error('Invalid response received from the server.');
+    }
+
+    // Handle expired or unauthorized sessions
+    if (response.status === 401 || response.status === 403) {
+        sessionStorage.clear();
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/index.html';
+        throw new Error('Authentication required.');
     }
 
     if (!response.ok) {
         throw new Error(
             result.message ||
             result.error ||
-            `Unable to load suppliers. Status: ${response.status}`
+            `Unable to load inventory. Status: ${response.status}`
         );
     }
 
@@ -39,24 +53,31 @@ async function fetchSuppliers() {
         return result.data;
     }
 
-    throw new Error('Invalid supplier data received from the server.');
+    throw new Error('Invalid inventory data received from the server.');
 }
 
 // =====================================
-// LOAD SUPPLIERS
+// LOAD INVENTORY
 // =====================================
 
-async function loadSuppliers() {
-    const supplierList = document.getElementById('supplierList');
+async function loadSupplierInventory() {
+    const inventoryList = document.getElementById('inventoryList');
     const message = document.getElementById('message');
 
-    if (!supplierList) {
-        console.error('Supplier table body #supplierList was not found.');
+    if (!inventoryList) {
+        console.error('Inventory table body not found.');
         return;
     }
 
-    supplierList.innerHTML =
-        '<tr><td colspan="5">Loading suppliers...</td></tr>';
+    inventoryList.innerHTML =
+        '<tr><td colspan="5">Loading inventory...</td></tr>';
+
+    if (message) {
+        message.textContent = '';
+    }
+
+    try {
+        const inventory = await fetchSupplierInventory();
 
     if (message) message.textContent = '';
 
@@ -75,23 +96,25 @@ async function loadSuppliers() {
             const row = document.createElement('tr');
 
             const values = [
-                supplier.supplier_id ?? supplier.id ?? '',
-                supplier.supplier_name ?? supplier.name ?? '',
-                supplier.contact_person ?? '',
-                supplier.phone ?? supplier.contact_number ?? '',
-                supplier.email ?? ''
+                item.inventory_id ?? '',
+                item.item_name ?? '',
+                item.quantity ?? 0,
+                item.unit ?? '',
+                item.supplier_name ?? ''
             ];
 
             values.forEach(value => {
                 const cell = document.createElement('td');
-                cell.textContent = value ?? '';
+                cell.textContent = value;
                 row.appendChild(cell);
             });
 
             supplierList.appendChild(row);
         });
 
-        console.log(`${suppliers.length} suppliers loaded successfully.`);
+        console.log(
+            `${inventory.length} inventory records loaded successfully.`
+        );
 
     } catch (error) {
         console.error('Supplier loading error:', error);
@@ -118,12 +141,5 @@ async function refreshSuppliers() {
 // =====================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    const refreshButton =
-        document.getElementById('refreshSuppliers');
-
-    if (refreshButton) {
-        refreshButton.addEventListener('click', refreshSuppliers);
-    }
-
-    loadSuppliers();
+    loadSupplierInventory();
 });
