@@ -79,15 +79,20 @@ async function loadSupplierInventory() {
     try {
         const inventory = await fetchSupplierInventory();
 
-        inventoryList.innerHTML = '';
+    if (message) message.textContent = '';
 
-        if (inventory.length === 0) {
-            inventoryList.innerHTML =
-                '<tr><td colspan="5">No inventory records found.</td></tr>';
+    try {
+        const suppliers = await fetchSuppliers();
+
+        supplierList.innerHTML = '';
+
+        if (suppliers.length === 0) {
+            supplierList.innerHTML =
+                '<tr><td colspan="5">No suppliers found.</td></tr>';
             return;
         }
 
-        inventory.forEach(item => {
+        suppliers.forEach(supplier => {
             const row = document.createElement('tr');
 
             const values = [
@@ -104,7 +109,7 @@ async function loadSupplierInventory() {
                 row.appendChild(cell);
             });
 
-            inventoryList.appendChild(row);
+            supplierList.appendChild(row);
         });
 
         console.log(
@@ -112,15 +117,23 @@ async function loadSupplierInventory() {
         );
 
     } catch (error) {
-        console.error('Inventory loading error:', error);
+        console.error('Supplier loading error:', error);
 
-        inventoryList.innerHTML =
-            '<tr><td colspan="5">Failed to load inventory.</td></tr>';
+        supplierList.innerHTML =
+            '<tr><td colspan="5">Failed to load suppliers.</td></tr>';
 
         if (message) {
             message.textContent = error.message;
         }
     }
+}
+
+// =====================================
+// REFRESH SUPPLIERS
+// =====================================
+
+async function refreshSuppliers() {
+    await loadSuppliers();
 }
 
 // =====================================
