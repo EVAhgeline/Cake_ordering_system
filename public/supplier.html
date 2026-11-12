@@ -1,12 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Employee Dashboard | Sweet Custom</title>
-
+    <title>Supplier Management | Sweet Custom</title>
     <link rel="stylesheet" href="employee-style.css">
 </head>
 
@@ -17,7 +14,7 @@
         <h2>🍰 Sweet Custom</h2>
         <p class="sidebar-label">EMPLOYEE PANEL</p>
 
-        <a href="employee.html" class="nav-link active">
+        <a href="employee.html" class="nav-link">
             🏠 Dashboard
         </a>
 
@@ -29,7 +26,7 @@
             📦 Inventory
         </a>
 
-        <a href="supplier.html" class="nav-link">
+        <a href="supplier.html" class="nav-link active">
             🚚 Suppliers
         </a>
 
@@ -42,15 +39,14 @@
         </button>
     </aside>
 
-
     <!-- MAIN CONTENT -->
     <main class="main-content">
 
         <!-- TOPBAR -->
         <header class="topbar">
             <div>
-                <h1>Dashboard</h1>
-                <p>Employee, Inventory and Supplier Management</p>
+                <h1>Supplier Management</h1>
+                <p>Add, view, edit, and manage your product suppliers.</p>
             </div>
 
             <div class="profile">
@@ -59,346 +55,272 @@
             </div>
         </header>
 
+        <!-- SUPPLIER FORM PANEL -->
+        <section class="form-panel">
+            <h2 id="formTitle">Add New Supplier</h2>
+            
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId">
 
-        <!-- WELCOME BANNER -->
-        <section class="welcome-banner">
-            <h2>Welcome to Sweet Custom!</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name *</label>
+                        <input type="text" id="supplierName" required placeholder="e.g. ABC Baking Supplies">
+                    </div>
 
-            <p>
-                Manage your employees, monitor your cake supplies,
-                organize your suppliers, and track supplier inventory
-                in one place.
-            </p>
+                    <div class="form-group">
+                        <label for="supplierContact">Contact Number</label>
+                        <input type="text" id="supplierContact" placeholder="e.g. 09123456789">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplierEmail">Email Address</label>
+                        <input type="email" id="supplierEmail" placeholder="e.g. supplier@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplierAddress">Address</label>
+                        <input type="text" id="supplierAddress" placeholder="e.g. Cebu City">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="submitBtn">Save Supplier</button>
+                    <button type="button" class="cancel-btn" id="cancelBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+            <p id="formMessage" class="message"></p>
         </section>
 
-
-        <!-- DASHBOARD STATISTICS -->
-        <section class="stats-container">
-
-            <div class="stat-card">
-                <div class="stat-icon">👩‍💼</div>
-                <h3>Total Employees</h3>
-                <h1 id="employeeCount">0</h1>
+        <!-- SUPPLIERS TABLE -->
+        <section class="table-container">
+            <div class="toolbar">
+                <h2>Supplier List</h2>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search suppliers..." onkeyup="filterSuppliers()">
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <h3>Inventory Items</h3>
-                <h1 id="inventoryCount">0</h1>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <h3>Low Stock Items</h3>
-                <h1 id="lowStockCount">0</h1>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">🚚</div>
-                <h3>Total Suppliers</h3>
-                <h1 id="supplierCount">0</h1>
-            </div>
-
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Supplier Name</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">Loading suppliers...</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
-
-        <!-- QUICK ACCESS -->
-        <section class="quick-links">
-
-            <h2>Quick Access</h2>
-
-            <div class="quick-grid">
-
-                <!-- EMPLOYEE MANAGEMENT -->
-                <a href="employees.html" class="quick-card">
-                    <span>👩‍💼</span>
-                    <h3>Employee Management</h3>
-                    <p>View and manage employee records.</p>
-                    <strong>Open Employees →</strong>
-                </a>
-
-
-                <!-- INVENTORY MANAGEMENT -->
-                <a href="employee-inventory.html" class="quick-card">
-                    <span>📦</span>
-                    <h3>Inventory Management</h3>
-                    <p>Monitor cake ingredients and supplies.</p>
-                    <strong>Open Inventory →</strong>
-                </a>
-
-
-                <!-- SUPPLIER MANAGEMENT -->
-                <a href="supplier.html" class="quick-card">
-                    <span>🚚</span>
-                    <h3>Supplier Management</h3>
-                    <p>Add, view, edit, and manage suppliers.</p>
-                    <strong>Open Suppliers →</strong>
-                </a>
-
-
-                <!-- SUPPLIER INVENTORY -->
-                <a href="supplier-inventory.html" class="quick-card">
-                    <span>📋</span>
-                    <h3>Supplier Inventory</h3>
-                    <p>View ingredients and their assigned suppliers.</p>
-                    <strong>Open Supplier Inventory →</strong>
-                </a>
-
-            </div>
-
-        </section>
-
-
-        <!-- DASHBOARD MESSAGE -->
         <p id="dashboardMessage" role="status"></p>
-
     </main>
 
-
-    <!-- DASHBOARD JAVASCRIPT -->
+    <!-- SUPPLIER MANAGEMENT JAVASCRIPT -->
     <script>
-
-        const API_URL = '/api/auth';
-
-        const SUPPLIER_API_URL =
-            'http://localhost:12067/api/suppliers';
-
-
-        // ==========================================
-        // AUTHENTICATION
-        // ==========================================
+        const API_URL = '/api/suppliers';
+        let allSuppliers = [];
 
         function getEmployeeToken() {
-            return sessionStorage.getItem('employeeToken');
+            return sessionStorage.getItem('employeeToken') || sessionStorage.getItem('token');
         }
-
-
-        function getAuthHeaders() {
-
-            const token = getEmployeeToken();
-
-            if (!token) {
-                window.location.href = '/index.html';
-                return null;
-            }
-
-            return {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            };
-        }
-
-
-        // ==========================================
-        // EMPLOYEE INFORMATION
-        // ==========================================
 
         function loadEmployeeName() {
-
             document.getElementById('employeeName').textContent =
                 sessionStorage.getItem('employeeName') || 'Employee';
         }
 
-
         // ==========================================
-        // API RESPONSE HELPER
+        // FETCH AND DISPLAY SUPPLIERS
         // ==========================================
-
-        async function getAPIData(url) {
-
-            const headers = getAuthHeaders();
-
-            if (!headers) {
-                throw new Error('Employee authentication required.');
-            }
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers
-            });
-
-            const text = await response.text();
-
-            let result;
+        async function loadSuppliers() {
+            const tbody = document.getElementById('supplierTableBody');
+            const message = document.getElementById('dashboardMessage');
 
             try {
-                result = text ? JSON.parse(text) : {};
-            } catch {
-                throw new Error('Invalid response from server.');
-            }
-
-
-            // HANDLE EXPIRED SESSION
-            if (response.status === 401 || response.status === 403) {
-
-                sessionStorage.removeItem('employeeToken');
-                sessionStorage.removeItem('employeeName');
-                sessionStorage.removeItem('employeeID');
-                sessionStorage.removeItem('token');
-
-                alert(
-                    'Your employee session has expired. Please log in again.'
-                );
-
-                window.location.href = '/index.html';
-
-                throw new Error('Employee authentication required.');
-            }
-
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    result.error ||
-                    'Unable to load dashboard data.'
-                );
-            }
-
-
-            return Array.isArray(result)
-                ? result
-                : result.data || [];
-        }
-
-
-        // ==========================================
-        // LOAD SUPPLIER COUNT
-        // ==========================================
-
-        async function loadSupplierCount() {
-
-            const countElement =
-                document.getElementById('supplierCount');
-
-            try {
-
-                const response = await fetch(SUPPLIER_API_URL);
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
 
                 if (!response.ok) {
-                    throw new Error('Unable to load suppliers.');
+                    throw new Error('Failed to load suppliers from server.');
                 }
 
-                const suppliers = await response.json();
+                const data = await response.json();
+                allSuppliers = Array.isArray(data) ? data : (data.data || []);
 
-                if (!Array.isArray(suppliers)) {
-                    throw new Error('Invalid supplier data.');
-                }
-
-                countElement.textContent = suppliers.length;
-
-            } catch (error) {
-
-                console.error('Supplier loading error:', error);
-
-                countElement.textContent = '—';
-            }
-        }
-
-
-        // ==========================================
-        // LOAD DASHBOARD INFORMATION
-        // ==========================================
-
-        async function loadDashboard() {
-
-            const message =
-                document.getElementById('dashboardMessage');
-
-            try {
-
-                message.textContent =
-                    'Loading dashboard information...';
-
-
-                const [
-                    employees,
-                    inventory,
-                    lowStock
-                ] = await Promise.all([
-
-                    getAPIData(`${API_URL}/employees`),
-
-                    getAPIData(`${API_URL}/inventory`),
-
-                    getAPIData(`${API_URL}/inventory-low-stock`)
-
-                ]);
-
-
-                // UPDATE EMPLOYEE COUNT
-                document.getElementById('employeeCount').textContent =
-                    employees.length;
-
-
-                // UPDATE INVENTORY COUNT
-                document.getElementById('inventoryCount').textContent =
-                    inventory.length;
-
-
-                // UPDATE LOW STOCK COUNT
-                document.getElementById('lowStockCount').textContent =
-                    lowStock.length;
-
-
+                renderSuppliers(allSuppliers);
                 message.textContent = '';
 
             } catch (error) {
-
-                console.error('Dashboard error:', error);
-
-                message.textContent =
-                    'Unable to load dashboard information: ' +
-                    error.message;
+                console.error('Error loading suppliers:', error);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #d9534f;">Failed to load suppliers.</td></tr>';
+                message.textContent = error.message;
             }
         }
 
+        function renderSuppliers(suppliers) {
+            const tbody = document.getElementById('supplierTableBody');
+            tbody.innerHTML = '';
+
+            if (suppliers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No suppliers found.</td></tr>';
+                return;
+            }
+
+            suppliers.forEach(s => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${s.supplier_id ?? ''}</td>
+                    <td><strong>${escapeHtml(s.supplier_name ?? '')}</strong></td>
+                    <td>${escapeHtml(s.contact ?? '—')}</td>
+                    <td>${escapeHtml(s.email ?? '—')}</td>
+                    <td>${escapeHtml(s.address ?? '—')}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editSupplier(${s.supplier_id})">Edit</button>
+                        <button class="delete-btn" onclick="deleteSupplier(${s.supplier_id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
 
         // ==========================================
-        // LOGOUT
+        // ADD / UPDATE SUPPLIER FORM SUBMISSION
         // ==========================================
+        document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('supplierId').value;
+            const supplier_name = document.getElementById('supplierName').value.trim();
+            const contact = document.getElementById('supplierContact').value.trim();
+            const email = document.getElementById('supplierEmail').value.trim();
+            const address = document.getElementById('supplierAddress').value.trim();
+            const formMessage = document.getElementById('formMessage');
+
+            const payload = { supplier_name, contact, email, address };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to save supplier.');
+                }
+
+                formMessage.style.color = '#47775d';
+                formMessage.textContent = result.message || 'Supplier saved successfully!';
+
+                resetForm();
+                loadSuppliers();
+
+            } catch (error) {
+                console.error('Save error:', error);
+                formMessage.style.color = '#d9534f';
+                formMessage.textContent = error.message;
+            }
+        });
+
+        // ==========================================
+        // EDIT & DELETE ACTIONS
+        // ==========================================
+        function editSupplier(id) {
+            const supplier = allSuppliers.find(s => s.supplier_id === id);
+            if (!supplier) return;
+
+            document.getElementById('supplierId').value = supplier.supplier_id;
+            document.getElementById('supplierName').value = supplier.supplier_name || '';
+            document.getElementById('supplierContact').value = supplier.contact || '';
+            document.getElementById('supplierEmail').value = supplier.email || '';
+            document.getElementById('supplierAddress').value = supplier.address || '';
+
+            document.getElementById('formTitle').textContent = 'Edit Supplier';
+            document.getElementById('submitBtn').textContent = 'Update Supplier';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteSupplier(id) {
+            if (!confirm('Are you sure you want to delete this supplier?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to delete supplier.');
+                }
+
+                loadSuppliers();
+
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierId').value = '';
+            document.getElementById('formTitle').textContent = 'Add New Supplier';
+            document.getElementById('submitBtn').textContent = 'Save Supplier';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('formMessage').textContent = '';
+        }
+
+        function filterSuppliers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allSuppliers.filter(s => 
+                (s.supplier_name && s.supplier_name.toLowerCase().includes(query)) ||
+                (s.contact && s.contact.toLowerCase().includes(query)) ||
+                (s.email && s.email.toLowerCase().includes(query)) ||
+                (s.address && s.address.toLowerCase().includes(query))
+            );
+            renderSuppliers(filtered);
+        }
 
         function logout() {
-
-            const confirmed = confirm(
-                'Are you sure you want to log out?'
-            );
-
-            if (!confirmed) return;
-
-
-            sessionStorage.removeItem('employeeToken');
-            sessionStorage.removeItem('employeeName');
-            sessionStorage.removeItem('employeeID');
-            sessionStorage.removeItem('token');
-
-
+            if (!confirm('Are you sure you want to log out?')) return;
+            sessionStorage.clear();
             window.location.href = '/index.html';
         }
 
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
 
         // ==========================================
-        // INITIALIZE DASHBOARD
+        // INITIALIZE PAGE
         // ==========================================
-
         document.addEventListener('DOMContentLoaded', () => {
-
             if (!getEmployeeToken()) {
-
                 alert('Please log in as an employee first.');
-
                 window.location.href = '/index.html';
-
                 return;
             }
 
             loadEmployeeName();
-
-            loadDashboard();
-
-            loadSupplierCount();
-
+            loadSuppliers();
         });
-
     </script>
 
 </body>

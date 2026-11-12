@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+app.use(cors()); // Allow requests from any local port
 const path = require('path');
 
 require('dotenv').config({

@@ -1,26 +1,87 @@
-
 const API_URL = '/api/suppliers/inventory';
 
-async function loadInventory() {
+// =====================================
+// FETCH SUPPLIER INVENTORY
+// =====================================
+
+async function fetchSupplierInventory() {
+    // Retrieve the auth token from session storage (supporting multiple key names)
+    const token = sessionStorage.getItem('employeeToken') || sessionStorage.getItem('token');
+
+    const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        }
+    });
+
+    const responseText = await response.text();
+
+    let result;
+
+    try {
+        result = responseText ? JSON.parse(responseText) : [];
+    } catch {
+        throw new Error('Invalid response received from the server.');
+    }
+
+    // Handle expired or unauthorized sessions
+    if (response.status === 401 || response.status === 403) {
+        sessionStorage.clear();
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/index.html';
+        throw new Error('Authentication required.');
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            result.message ||
+            result.error ||
+            `Unable to load inventory. Status: ${response.status}`
+        );
+    }
+
+    if (Array.isArray(result)) {
+        return result;
+    }
+
+    if (result && Array.isArray(result.data)) {
+        return result.data;
+    }
+
+    throw new Error('Invalid inventory data received from the server.');
+}
+
+// =====================================
+// LOAD INVENTORY
+// =====================================
+
+async function loadSupplierInventory() {
     const inventoryList = document.getElementById('inventoryList');
     const message = document.getElementById('message');
 
+    if (!inventoryList) {
+        console.error('Inventory table body (#inventoryList) not found in HTML.');
+        return;
+    }
+
     inventoryList.innerHTML =
-        '<tr><td colspan="5">Loading inventory...</td></tr>';
+        '<tr><td colspan="5" style="text-align: center;">Loading inventory...</td></tr>';
+
+    if (message) {
+        message.textContent = '';
+    }
 
     try {
-        const response = await fetch(API_URL);
-        const inventory = await response.json();
-
-        if (!response.ok) {
-            throw new Error(inventory.message || 'Unable to load inventory');
-        }
+        const inventory = await fetchSupplierInventory();
 
         inventoryList.innerHTML = '';
 
         if (inventory.length === 0) {
             inventoryList.innerHTML =
-                '<tr><td colspan="5">No inventory records found.</td></tr>';
+                '<tr><td colspan="5" style="text-align: center;">No inventory records found.</td></tr>';
             return;
         }
 
@@ -28,32 +89,40 @@ async function loadInventory() {
             const row = document.createElement('tr');
 
             const values = [
-                item.inventory_id,
-                item.item_name,
-                item.quantity,
-                item.unit,
-                item.supplier_name || 'Not assigned'
+                item.inventory_id ?? '',
+                item.item_name ?? '',
+                item.quantity ?? 0,
+                item.unit ?? '',
+                item.supplier_name ?? ''
             ];
 
             values.forEach(value => {
                 const cell = document.createElement('td');
-                cell.textContent = value ?? '';
+                cell.textContent = value;
                 row.appendChild(cell);
             });
 
             inventoryList.appendChild(row);
         });
 
-        message.textContent = '';
+        console.log(`${inventory.length} inventory records loaded successfully.`);
 
     } catch (error) {
-        console.error(error);
+        console.error('Inventory loading error:', error);
 
         inventoryList.innerHTML =
-            '<tr><td colspan="5">Failed to load inventory.</td></tr>';
+            '<tr><td colspan="5" style="text-align: center; color: #d9534f;">Failed to load inventory.</td></tr>';
 
-        message.textContent = error.message;
+        if (message) {
+            message.textContent = error.message;
+        }
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadInventory);
+// =====================================
+// INITIALIZE PAGE
+// =====================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSupplierInventory();
+});

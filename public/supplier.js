@@ -1,46 +1,83 @@
 
-const API_URL = '/api/suppliers';
+const API_URL = '/api/suppliers/inventory';
 
 // =====================================
-// LOAD SUPPLIER INVENTORY
+// FETCH SUPPLIER INVENTORY
 // =====================================
 
-async function loadInventory() {
+async function fetchSupplierInventory() {
+    // 1. Retrieve the auth token from session storage
+    const token = sessionStorage.getItem('employeeToken') || sessionStorage.getItem('token');
+
+    const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            // 2. Include the Authorization header so the backend allows the request
+            'Authorization': token ? `Bearer ${token}` : ''
+        }
+    });
+
+    const responseText = await response.text();
+
+    let result;
+
+    try {
+        result = responseText ? JSON.parse(responseText) : [];
+    } catch {
+        throw new Error('Invalid response received from the server.');
+    }
+
+    // Handle expired or unauthorized sessions
+    if (response.status === 401 || response.status === 403) {
+        sessionStorage.clear();
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/index.html';
+        throw new Error('Authentication required.');
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            result.message ||
+            result.error ||
+            `Unable to load inventory. Status: ${response.status}`
+        );
+    }
+
+    if (Array.isArray(result)) {
+        return result;
+    }
+
+    if (result && Array.isArray(result.data)) {
+        return result.data;
+    }
+
+    throw new Error('Invalid inventory data received from the server.');
+}
+
+// =====================================
+// LOAD INVENTORY
+// =====================================
+
+async function loadSupplierInventory() {
     const inventoryList = document.getElementById('inventoryList');
     const message = document.getElementById('message');
+
+    if (!inventoryList) {
+        console.error('Inventory table body not found.');
+        return;
+    }
 
     inventoryList.innerHTML =
         '<tr><td colspan="5">Loading inventory...</td></tr>';
 
+    if (message) {
+        message.textContent = '';
+    }
+
     try {
-        const response = await fetch(API_URL);
-
-        // Check if the server returned an error
-        if (!response.ok) {
-            throw new Error(
-                `Server error: ${response.status} ${response.statusText}`
-            );
-        }
-
-        // Verify that the response is JSON
-        const contentType = response.headers.get('content-type') || '';
-
-        if (!contentType.includes('application/json')) {
-            const responseText = await response.text();
-
-            console.error('Unexpected server response:', responseText);
-
-            throw new Error(
-                'The API returned HTML instead of JSON. ' +
-                'Check the backend URL and server routes.'
-            );
-        }
-
-        const inventory = await response.json();
-
-        if (!Array.isArray(inventory)) {
-            throw new Error('Invalid inventory data received.');
-        }
+        const inventory = await fetchSupplierInventory();
 
         inventoryList.innerHTML = '';
 
@@ -54,23 +91,25 @@ async function loadInventory() {
             const row = document.createElement('tr');
 
             const values = [
-                item.inventory_id,
-                item.item_name,
-                item.quantity,
-                item.unit,
-                item.supplier_name || 'Not assigned'
+                item.inventory_id ?? '',
+                item.item_name ?? '',
+                item.quantity ?? 0,
+                item.unit ?? '',
+                item.supplier_name ?? ''
             ];
 
             values.forEach(value => {
                 const cell = document.createElement('td');
-                cell.textContent = value ?? '';
+                cell.textContent = value;
                 row.appendChild(cell);
             });
 
             inventoryList.appendChild(row);
         });
 
-        message.textContent = '';
+        console.log(
+            `${inventory.length} inventory records loaded successfully.`
+        );
 
     } catch (error) {
         console.error('Inventory loading error:', error);
@@ -78,7 +117,9 @@ async function loadInventory() {
         inventoryList.innerHTML =
             '<tr><td colspan="5">Failed to load inventory.</td></tr>';
 
-        message.textContent = error.message;
+        if (message) {
+            message.textContent = error.message;
+        }
     }
 }
 
@@ -87,5 +128,5 @@ async function loadInventory() {
 // =====================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadInventory();
+    loadSupplierInventory();
 });

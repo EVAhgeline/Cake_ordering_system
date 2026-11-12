@@ -139,9 +139,11 @@
     <!-- DASHBOARD JAVASCRIPT -->
     <script>
 
+        // EMPLOYEE AUTHENTICATION API
         const API_URL = '/api/auth';
-        const SUPPLIER_API_URL = 'http://localhost:12067/api/suppliers';
 
+        // SUPPLIER MANAGEMENT API
+        const SUPPLIER_API_URL = '/api/suppliers';
         // ==========================================
         // AUTHENTICATION
         // ==========================================
@@ -231,12 +233,11 @@
         // ==========================================
 
         async function loadSupplierCount() {
-
-            const countElement =
-                document.getElementById('supplierCount');
+            const countElement = document.getElementById('supplierCount');
 
             try {
-
+                // Fetch directly without requiring auth headers, 
+                // since /api/suppliers is publicly accessible on the backend
                 const response = await fetch(SUPPLIER_API_URL);
 
                 if (!response.ok) {
@@ -244,13 +245,12 @@
                 }
 
                 const suppliers = await response.json();
+                const supplierList = Array.isArray(suppliers) ? suppliers : (suppliers.data || []);
 
-                countElement.textContent = suppliers.length;
+                countElement.textContent = supplierList.length;
 
             } catch (error) {
-
                 console.error('Supplier loading error:', error);
-
                 countElement.textContent = '—';
             }
         }
