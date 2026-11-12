@@ -17,7 +17,7 @@ const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '4321dekay',
-    database: 'custom_cake_ordering_system', 
+    database: 'cake_ordering_system', 
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
