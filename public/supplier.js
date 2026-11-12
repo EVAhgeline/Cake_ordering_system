@@ -78,21 +78,15 @@ async function loadSupplierInventory() {
 
     try {
         const inventory = await fetchSupplierInventory();
+        inventoryList.innerHTML = '';
 
-    if (message) message.textContent = '';
-
-    try {
-        const suppliers = await fetchSuppliers();
-
-        supplierList.innerHTML = '';
-
-        if (suppliers.length === 0) {
-            supplierList.innerHTML =
-                '<tr><td colspan="5">No suppliers found.</td></tr>';
+        if (inventory.length === 0) {
+            inventoryList.innerHTML =
+                '<tr><td colspan="5">No inventory found.</td></tr>';
             return;
         }
 
-        suppliers.forEach(supplier => {
+        inventory.forEach(item => {
             const row = document.createElement('tr');
 
             const values = [
@@ -109,7 +103,7 @@ async function loadSupplierInventory() {
                 row.appendChild(cell);
             });
 
-            supplierList.appendChild(row);
+            inventoryList.appendChild(row);
         });
 
         console.log(
@@ -117,10 +111,10 @@ async function loadSupplierInventory() {
         );
 
     } catch (error) {
-        console.error('Supplier loading error:', error);
+        console.error('Inventory loading error:', error);
 
-        supplierList.innerHTML =
-            '<tr><td colspan="5">Failed to load suppliers.</td></tr>';
+        inventoryList.innerHTML =
+            '<tr><td colspan="5">Failed to load inventory.</td></tr>';
 
         if (message) {
             message.textContent = error.message;
