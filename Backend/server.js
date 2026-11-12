@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -37,7 +36,6 @@ db.getConnection((err, connection) => {
 
 // 1. Get All Cake Designs
 app.get('/api/cake-designs', (req, res) => {
-
     const categoryFilter = req.query.category;
 
     let query = `
@@ -72,7 +70,6 @@ app.get('/api/cake-designs', (req, res) => {
     }
 
     db.query(query, queryParams, (err, results) => {
-
         if (err) {
             console.error('Error fetching designs:', err);
             return res.status(500).json({
@@ -107,11 +104,9 @@ app.get('/api/cake-designs', (req, res) => {
 
 // 2. Get Sizes
 app.get('/api/sizes', (req, res) => {
-
     db.query(
         'SELECT size_id AS id, size_name AS name, extra_price AS extraPrice FROM Size',
         (err, results) => {
-
             if (err) {
                 return res.status(500).json({
                     success: false,
@@ -129,11 +124,9 @@ app.get('/api/sizes', (req, res) => {
 
 // 3. Get Flavors
 app.get('/api/flavors', (req, res) => {
-
     db.query(
         'SELECT flavor_id AS id, flavor_name AS name, extra_price AS extraPrice FROM Flavor',
         (err, results) => {
-
             if (err) {
                 return res.status(500).json({
                     success: false,
@@ -149,13 +142,10 @@ app.get('/api/flavors', (req, res) => {
     );
 });
 
-
 // ==========================================
 // 4. CREATE CUSTOMER ORDER
 // ==========================================
-
 app.post('/api/orders', async (req, res) => {
-
     const {
         customerName,
         contact,
@@ -217,13 +207,11 @@ app.post('/api/orders', async (req, res) => {
     const connection = await db.promise().getConnection();
 
     try {
-
         await connection.beginTransaction();
 
         // ======================================
         // STEP 1: FIND OR CREATE CUSTOMER
         // ======================================
-
         const [existingCustomers] = await connection.execute(
             `SELECT customer_id
              FROM Customer
@@ -235,7 +223,6 @@ app.post('/api/orders', async (req, res) => {
         let customerId;
 
         if (existingCustomers.length > 0) {
-
             customerId = existingCustomers[0].customer_id;
 
             await connection.execute(
@@ -253,9 +240,7 @@ app.post('/api/orders', async (req, res) => {
                     customerId
                 ]
             );
-
         } else {
-
             const [customerResult] = await connection.execute(
                 `INSERT INTO Customer (name, contact, address)
                  VALUES (?, ?, ?)`,
@@ -267,13 +252,11 @@ app.post('/api/orders', async (req, res) => {
             );
 
             customerId = customerResult.insertId;
-
         }
 
         // ======================================
         // STEP 2: CREATE CUSTOM ORDER
         // ======================================
-
         const [orderResult] = await connection.execute(
             `INSERT INTO Custom_Order (customer_id, status)
              VALUES (?, ?)`,
@@ -285,11 +268,9 @@ app.post('/api/orders', async (req, res) => {
         // ======================================
         // STEP 3: INSERT ORDER DETAILS
         // ======================================
-
         let totalAmount = 0;
 
         for (const item of items) {
-
             const designId = Number(item.designId);
             const flavorId = Number(item.flavorId);
             const sizeId = Number(item.sizeId);
@@ -311,11 +292,9 @@ app.post('/api/orders', async (req, res) => {
             );
 
             if (priceRows.length === 0) {
-
                 throw new Error(
                     'Invalid cake design, flavor, or size selected.'
                 );
-
             }
 
             const basePrice = Number(priceRows[0].base_price);
@@ -353,7 +332,6 @@ app.post('/api/orders', async (req, res) => {
         // ======================================
         // STEP 4: VALIDATE AND SAVE PAYMENT
         // ======================================
-
         const paymentDownpayment = Number(downpayment || 0);
 
         if (
@@ -384,7 +362,6 @@ app.post('/api/orders', async (req, res) => {
         // ======================================
         // STEP 5: COMMIT TRANSACTION
         // ======================================
-
         await connection.commit();
 
         res.status(201).json({
@@ -395,72 +372,81 @@ app.post('/api/orders', async (req, res) => {
         });
 
     } catch (err) {
-
         await connection.rollback();
-
         console.error('Order creation failed:', err);
-
         res.status(500).json({
             success: false,
             message: err.message || 'Failed to place order.'
         });
-
     } finally {
-
         connection.release();
-
     }
-
 });
 
-             
-// Start Server
-const PORT = process.env.PORT || 12067;
+// ==========================================
+// 5. DELETE CUSTOMER ORDER ROUTE
+// ==========================================
+app.delete('/api/orders/:id', async (req, res) => {
+    let connection;
+
+    try {
+        const orderId = Number(req.params.id);
+
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order ID.'
+            });
+        }
+
+        connection = await db.promise().getConnection();
+        await connection.beginTransaction();
+
+        // 1. Delete related payment record first
+        await connection.execute('DELETE FROM Payment WHERE order_id = ?', [orderId]);
+
+        // 2. Delete related order details (items)
+        await connection.execute('DELETE FROM Order_Detail WHERE order_id = ?', [orderId]);
+
+        // 3. Delete the main custom order
+        const [result] = await connection.execute('DELETE FROM Custom_Order WHERE order_id = ?', [orderId]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.'
+            });
+        }
+
+        await connection.commit();
+
+        res.json({
+            success: true,
+            message: 'Order deleted successfully.'
+        });
+
+    } catch (err) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error('Delete order failed:', err);
+        res.status(500).json({
+            success: false,
+            message: err.message || 'Failed to delete order.'
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+});
+
+// ==========================================
+// START SERVER (Port 12068)
+// ==========================================
+const PORT = process.env.PORT || 12068;
 
 app.listen(PORT, () => {
     console.log(`Cake System Server running at http://localhost:${PORT}`);
 });
-
-
-
-// CUSTOMER FORM SUBMISSION
-document.getElementById("customerForm")
-.addEventListener("submit", function(event) {
-
-    event.preventDefault();
-
-    const customer = {
-        name: document.getElementById("customerName").value.trim(),
-        contact: document.getElementById("customerContact").value.trim(),
-        email: document.getElementById("customerEmail").value.trim()
-    };
-
-    // Save customer information temporarily
-    sessionStorage.setItem(
-        "customerInfo",
-        JSON.stringify(customer)
-    );
-
-    // Close login window and continue to cake ordering
-    document.getElementById("roleSelectionModal").style.display = "none";
-
-});
-
-
-document.getElementById("customerForm")
-.addEventListener("submit", function(event) {
-
-    event.preventDefault();
-
-    const customer = {
-        name: document.getElementById("customerName").value.trim(),
-        contact: document.getElementById("customerContact").value.trim()
-    };
-
-    sessionStorage.setItem(
-        "customerInfo",
-        JSON.stringify(customer)
-    );
-
-    document.getElementById("roleSelectionModal").style.display = "none";
-});s

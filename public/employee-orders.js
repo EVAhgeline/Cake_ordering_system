@@ -320,6 +320,16 @@ function renderOrder(order) {
 
                 </button>
 
+                <button
+                    type="button"
+                    class="delete-btn"
+                    style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 8px;"
+                    onclick="deleteOrder(${orderId})">
+
+                    Delete Order
+
+                </button>
+
             </div>
 
         </article>
@@ -423,6 +433,61 @@ async function updateOrderStatus(orderId) {
         console.error('Update status error:', error);
 
         alert(error.message);
+
+    }
+
+}
+
+
+// ==========================================
+// DELETE ORDER
+// ==========================================
+
+
+// ==========================================
+// DELETE CUSTOMER ORDER
+// ==========================================
+
+async function deleteOrder(orderId) {
+
+    if (!orderId) {
+        alert('Invalid order ID.');
+        return;
+    }
+
+    const confirmed = confirm(
+        'Are you sure you want to delete this order? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+
+        const response = await fetch(`/api/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || 'Failed to delete order.'
+            );
+        }
+
+        alert('Order deleted successfully!');
+
+        // Refresh the employee orders table
+        loadOrders();
+
+    } catch (error) {
+
+        console.error('Delete order error:', error);
+
+        alert(error.message || 'Unable to delete order.');
 
     }
 

@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
@@ -7,11 +6,8 @@ const pool = require('../db');
 // GET ALL CUSTOMER ORDERS
 // GET /api/orders
 // ==========================================
-
 router.get('/', async (req, res) => {
-
     try {
-
         const [orders] = await pool.execute(`
             SELECT
                 co.order_id,
@@ -44,9 +40,7 @@ router.get('/', async (req, res) => {
 
         // Get cake details for all orders
         if (orders.length > 0) {
-
             const orderIds = orders.map(order => order.order_id);
-
             const placeholders = orderIds.map(() => '?').join(',');
 
             const [details] = await pool.execute(`
@@ -82,13 +76,10 @@ router.get('/', async (req, res) => {
             `, orderIds);
 
             orders.forEach(order => {
-
                 order.items = details.filter(
                     item => item.order_id === order.order_id
                 );
-
             });
-
         }
 
         res.json({
@@ -98,16 +89,12 @@ router.get('/', async (req, res) => {
         });
 
     } catch (error) {
-
         console.error('Fetch orders error:', error);
-
         res.status(500).json({
             success: false,
             message: 'Failed to retrieve customer orders.'
         });
-
     }
-
 });
 
 
@@ -115,11 +102,8 @@ router.get('/', async (req, res) => {
 // UPDATE ORDER STATUS
 // PATCH /api/orders/:id/status
 // ==========================================
-
 router.patch('/:id/status', async (req, res) => {
-
     try {
-
         const orderId = Number(req.params.id);
         const { status } = req.body;
 
@@ -133,21 +117,17 @@ router.patch('/:id/status', async (req, res) => {
         ];
 
         if (!Number.isInteger(orderId) || orderId <= 0) {
-
             return res.status(400).json({
                 success: false,
                 message: 'Invalid order ID.'
             });
-
         }
 
         if (!allowedStatuses.includes(status)) {
-
             return res.status(400).json({
                 success: false,
                 message: 'Invalid order status.'
             });
-
         }
 
         const [result] = await pool.execute(`
@@ -157,12 +137,10 @@ router.patch('/:id/status', async (req, res) => {
         `, [status, orderId]);
 
         if (result.affectedRows === 0) {
-
             return res.status(404).json({
                 success: false,
                 message: 'Order not found.'
             });
-
         }
 
         res.json({
@@ -173,23 +151,19 @@ router.patch('/:id/status', async (req, res) => {
         });
 
     } catch (error) {
-
         console.error('Update order status error:', error);
-
         res.status(500).json({
             success: false,
             message: 'Failed to update order status.'
         });
-
     }
-
 });
+
 
 // ==========================================
 // CREATE CUSTOMER ORDER
 // POST /api/orders
 // ==========================================
-
 router.post('/', async (req, res) => {
     let connection;
 
@@ -284,18 +258,15 @@ router.post('/', async (req, res) => {
         }
 
         connection = await pool.getConnection();
-
         await connection.beginTransaction();
 
         // ======================================
         // CALCULATE PRICES USING MYSQL
         // ======================================
-
         let totalAmount = 0;
         const orderItems = [];
 
         for (const item of items) {
-
             const [rows] = await connection.execute(`
                 SELECT
                     cd.id AS design_id,
@@ -333,8 +304,7 @@ router.post('/', async (req, res) => {
                 Number(cake.flavor_extra_price);
 
             const quantity = Number(item.quantity);
-
-            const subtotal = unitPrice * quantity;
+            const subtotal = Number((unitPrice * quantity).toFixed(2));
 
             totalAmount += subtotal;
 
@@ -344,6 +314,7 @@ router.post('/', async (req, res) => {
                 sizeId: cake.size_id,
                 quantity,
                 unitPrice,
+                subtotal,
                 messageOnCake: item.messageOnCake?.trim() || null
             });
         }
@@ -351,15 +322,17 @@ router.post('/', async (req, res) => {
         totalAmount = Number(totalAmount.toFixed(2));
 
         if (selectedDownpayment > totalAmount) {
-            throw new Error(
-                'Downpayment cannot exceed the order total.'
-            );
+            await connection.rollback();
+
+            return res.status(400).json({
+                success: false,
+                message: 'Downpayment cannot exceed the order total.'
+            });
         }
 
         // ======================================
         // SAVE CUSTOMER
         // ======================================
-
         const [customerResult] = await connection.execute(`
             INSERT INTO customer
                 (name, contact, address)
@@ -375,7 +348,6 @@ router.post('/', async (req, res) => {
         // ======================================
         // CREATE MAIN ORDER
         // ======================================
-
         const [orderResult] = await connection.execute(`
             INSERT INTO custom_order
                 (customer_id, total_amount, status)
@@ -387,10 +359,10 @@ router.post('/', async (req, res) => {
 
         const orderId = orderResult.insertId;
 
+        
         // ======================================
         // SAVE ORDER DETAILS
         // ======================================
-
         for (const item of orderItems) {
 
             await connection.execute(`
@@ -414,12 +386,12 @@ router.post('/', async (req, res) => {
                 item.quantity,
                 item.unitPrice
             ]);
+
         }
 
         // ======================================
         // SAVE PAYMENT
         // ======================================
-
         await connection.execute(`
             INSERT INTO payment
                 (
@@ -439,7 +411,6 @@ router.post('/', async (req, res) => {
         // ======================================
         // COMMIT TRANSACTION
         // ======================================
-
         await connection.commit();
 
         res.status(201).json({
@@ -455,7 +426,6 @@ router.post('/', async (req, res) => {
         });
 
     } catch (error) {
-
         if (connection) {
             await connection.rollback();
         }
@@ -468,7 +438,67 @@ router.post('/', async (req, res) => {
         });
 
     } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+});
 
+
+// ==========================================
+// DELETE ORDER ROUTE
+// DELETE /api/orders/:id
+// ==========================================
+router.delete('/:id', async (req, res) => {
+    let connection;
+
+    try {
+        const orderId = Number(req.params.id);
+
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order ID.'
+            });
+        }
+
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        // 1. Delete related payment record first
+        await connection.execute('DELETE FROM payment WHERE order_id = ?', [orderId]);
+
+        // 2. Delete related order details (items)
+        await connection.execute('DELETE FROM order_detail WHERE order_id = ?', [orderId]);
+
+        // 3. Delete the main custom order
+        const [result] = await connection.execute('DELETE FROM custom_order WHERE order_id = ?', [orderId]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.'
+            });
+        }
+
+        await connection.commit();
+
+        res.json({
+            success: true,
+            message: 'Order deleted successfully.'
+        });
+
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error('Delete order error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error while deleting order.'
+        });
+    } finally {
         if (connection) {
             connection.release();
         }
