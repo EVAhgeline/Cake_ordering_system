@@ -38,6 +38,7 @@ function loadCheckoutData() {
 
     } catch (error) {
 
+        console.error('Cart loading error:', error);
         checkoutCart = [];
 
     }
@@ -50,6 +51,7 @@ function loadCheckoutData() {
 
         document.getElementById('placeOrderBtn').disabled = true;
         return;
+
     }
 
     if (checkoutCart.length === 0) {
@@ -60,6 +62,7 @@ function loadCheckoutData() {
 
         document.getElementById('placeOrderBtn').disabled = true;
         return;
+
     }
 
     document.getElementById('customerName').value = customerName;
@@ -128,16 +131,23 @@ function renderCheckoutItems() {
 
     `).join('');
 
-    // Calculate total using checkoutCart
-    const total = checkoutCart.reduce((sum, item) => {
+    calculateTotal();
+
+}
+
+
+// ==========================================
+// CALCULATE TOTAL
+// ==========================================
+
+function calculateTotal() {
+
+    return checkoutCart.reduce((sum, item) => {
 
         return sum +
             (Number(item.price) * (Number(item.quantity) || 1));
 
     }, 0);
-
-    document.getElementById('checkoutTotal').textContent =
-        formatCurrency(total);
 
 }
 
@@ -146,115 +156,95 @@ function renderCheckoutItems() {
 // PLACE ORDER
 // ==========================================
 
-async function placeOrder() {
+async function placeOrder(event) {
 
-    const button = document.getElementById('placeOrderBtn');
+    if (event) event.preventDefault();
 
-    if (button.disabled) {
-        return;
-    }
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
 
-    const customerName = sessionStorage.getItem('customerName');
-    const customerPhone = sessionStorage.getItem('customerPhone');
+    // Prevent duplicate submissions
+    if (placeOrderBtn.disabled) return;
 
-    const address =
-        document.getElementById('orderAddress').value.trim();
+    const customerName = document.getElementById('customerName').value.trim();
 
-    const paymentMethod =
-        document.getElementById('paymentMethod').value;
+    const customerPhone = document.getElementById('customerPhone').value.trim();
 
-    const downpayment =
-        Number(document.getElementById('downpayment').value || 0);
+    const address = document.getElementById('orderAddress').value.trim();
 
-    // Calculate total using checkoutCart
-    const total = checkoutCart.reduce((sum, item) => {
+    const paymentMethod = document.getElementById('paymentMethod').value;
 
-        return sum +
-            (Number(item.price) * (Number(item.quantity) || 1));
+    const downpayment = Number(
+        document.getElementById('downpayment').value
+    );
 
-    }, 0);
+    const total = calculateTotal();
+
+    // ======================================
+    // VALIDATION
+    // ======================================
 
     if (!customerName || !customerPhone) {
 
-        showMessage('Customer information is missing.');
+        alert('Customer information is missing.');
         return;
 
     }
 
     if (checkoutCart.length === 0) {
 
-        showMessage('Your cart is empty.');
+        alert('Your cart is empty.');
         return;
 
     }
 
-    if (!Number.isFinite(total) || total <= 0) {
+    if (!Number.isFinite(downpayment) || downpayment < 0) {
 
-        showMessage('Your order total is invalid. Please check your cart.');
+        alert('Please enter a valid downpayment.');
         return;
 
     }
 
-    if (
-        !Number.isFinite(downpayment) ||
-        downpayment < 0 ||
-        downpayment > total
-    ) {
+    if (downpayment > total) {
 
-        showMessage(
-            'Please enter a valid downpayment that does not exceed the order total.'
+        alert('Downpayment cannot exceed the total amount.');
+        return;
+
+    }
+
+    // ======================================
+    // COLLECT ORDER ITEMS
+    // ======================================
+
+    const itemsList = checkoutCart.map((item, index) => {
+
+        const messageInput = document.getElementById(
+            `cakeMessage${index}`
         );
 
-        return;
+        return {
 
-    }
+            designId: item.designId || item.id,
+            flavorId: item.flavorId,
+            sizeId: item.sizeId,
 
-    // Prepare database IDs and cake messages
-    const items = checkoutCart.map((item, index) => ({
+            quantity: Number(item.quantity) || 1,
 
-        designId: Number(item.designId),
+            messageOnCake: messageInput
+                ? messageInput.value.trim() || null
+                : null
 
-        flavorId: Number(item.flavorId),
+        };
 
-        sizeId: Number(item.sizeId),
+    });
 
-        quantity: Number(item.quantity) || 1,
-
-        messageOnCake:
-            document.getElementById(`cakeMessage${index}`)?.value.trim() || ''
-
-    }));
-
-    // Validate required database IDs
-    const invalidItem = items.some(item =>
-
-        !Number.isInteger(item.designId) ||
-        !Number.isInteger(item.flavorId) ||
-        !Number.isInteger(item.sizeId) ||
-        item.designId <= 0 ||
-        item.flavorId <= 0 ||
-        item.sizeId <= 0 ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity <= 0
-
-    );
-
-    if (invalidItem) {
-
-        showMessage(
-            'Some cart items are missing database IDs. Please return to the gallery and add them again.'
-        );
-
-        return;
-
-    }
-
-    button.disabled = true;
-    button.textContent = 'Placing Order...';
-
-    showMessage('');
+    // ======================================
+    // SEND ORDER TO BACKEND
+    // ======================================
 
     try {
+
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.textContent = 'Processing Order...';
 
         const response = await fetch('/api/orders', {
 
@@ -268,9 +258,13 @@ async function placeOrder() {
 
                 customerName,
                 contact: customerPhone,
-                address,
-                items,
+
+                address: address || 'Pickup',
+
+                items: itemsList,
+
                 paymentMethod,
+
                 downpayment
 
             })
@@ -282,37 +276,25 @@ async function placeOrder() {
         if (!response.ok || !result.success) {
 
             throw new Error(
-                result.message ||
-                result.error ||
-                'Unable to place your order.'
+                result.message || 'Failed to place order.'
             );
 
         }
 
-        // Display order ID
-        document.getElementById('confirmationOrderId').textContent =
-            `#${result.orderId}`;
+        // ==================================
+        // DISPLAY CONFIRMATION
+        // ==================================
 
-        // Display payment summary
-        document.getElementById('confirmationTotal').textContent =
-            formatCurrency(result.totalAmount);
-
-        document.getElementById('confirmationDownpayment').textContent =
-            formatCurrency(result.downpayment);
-
-        document.getElementById('confirmationBalance').textContent =
-            formatCurrency(result.remainingBalance);
+        displayOrderConfirmation(
+            result,
+            total,
+            downpayment
+        );
 
         // Clear cart after successful order
         sessionStorage.removeItem(CART_KEY);
-        checkoutCart = [];
 
-        // Show confirmation panel
-        document.getElementById('confirmationPanel').hidden = false;
-
-        // Hide checkout content
-        document.querySelector('.checkout-layout').style.display = 'none';
-        document.querySelector('.checkout-header').style.display = 'none';
+        document.getElementById('checkoutItems').innerHTML = '';
 
         showMessage('');
 
@@ -320,16 +302,52 @@ async function placeOrder() {
 
         console.error('Place order error:', error);
 
-        showMessage(
-            error.message || 'Unable to place your order.'
-        );
+        alert(error.message);
 
-    } finally {
-
-        button.disabled = false;
-        button.textContent = 'Place Order';
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.textContent = 'Place Order';
 
     }
+
+}
+
+
+// ==========================================
+// DISPLAY ORDER CONFIRMATION
+// ==========================================
+
+function displayOrderConfirmation(result, total, downpayment) {
+
+    const confirmationPanel = document.getElementById(
+        'confirmationPanel'
+    );
+
+    const orderId =
+        result.orderId ||
+        result.id ||
+        result.order?.orderId ||
+        result.order?.id ||
+        'Pending';
+
+    document.getElementById('confirmationOrderId').textContent =
+        orderId;
+
+    document.getElementById('confirmationTotal').textContent =
+        formatCurrency(total);
+
+    document.getElementById('confirmationDownpayment').textContent =
+        formatCurrency(downpayment);
+
+    document.getElementById('confirmationBalance').textContent =
+        formatCurrency(total - downpayment);
+
+    confirmationPanel.hidden = false;
+
+    document.getElementById('placeOrderBtn').hidden = true;
+
+    confirmationPanel.scrollIntoView({
+        behavior: 'smooth'
+    });
 
 }
 
