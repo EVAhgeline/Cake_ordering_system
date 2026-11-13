@@ -1,66 +1,72 @@
 
-CREATE DATABASE IF NOT EXISTS cake_design_db;
-USE cake_design_db;
+CREATE DATABASE cake_ordering_system;
 
--- 1. Drop child table first, then its parent tables
-DROP TABLE IF EXISTS cake_designs;
-DROP TABLE IF EXISTS design_specs;
-DROP TABLE IF EXISTS sizes;
-DROP TABLE IF EXISTS flavors;
-DROP TABLE IF EXISTS categories;
+USE cake_ordering_system;
 
--- 2. Create lookup tables
+
 CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE flavors (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    extra_price DECIMAL(10,2) NOT NULL DEFAULT 0.00
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    extra_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE sizes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    extra_price DECIMAL(10,2) NOT NULL DEFAULT 0.00
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    base_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    extra_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (id)
 );
 
--- 3. Create design specifications
 CREATE TABLE design_specs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    color VARCHAR(255) NOT NULL,
-    texture VARCHAR(255) NOT NULL,
-    shapes VARCHAR(255) NOT NULL,
-    icing VARCHAR(255) NOT NULL
+    id INT NOT NULL AUTO_INCREMENT,
+    color VARCHAR(100) DEFAULT NULL,
+    texture VARCHAR(100) DEFAULT NULL,
+    shapes VARCHAR(255) DEFAULT NULL,
+    icing VARCHAR(100) DEFAULT NULL,
+    PRIMARY KEY (id)
 );
 
--- 4. Create the main cake designs table
+
+
 CREATE TABLE cake_designs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    base_price DECIMAL(10,2) NOT NULL DEFAULT 350.00,
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL,
     category_id INT NOT NULL,
     flavor_id INT NOT NULL,
     size_id INT NOT NULL,
     spec_id INT NOT NULL,
-    imageUrl VARCHAR(500),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_cake_category
-        FOREIGN KEY (category_id) REFERENCES categories(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_cake_flavor
-        FOREIGN KEY (flavor_id) REFERENCES flavors(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_cake_size
-        FOREIGN KEY (size_id) REFERENCES sizes(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_cake_design_spec
+    base_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    imageUrl VARCHAR(500) DEFAULT NULL,
+    createdAt TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY category_id (category_id),
+    KEY flavor_id (flavor_id),
+    KEY size_id (size_id),
+    KEY spec_id (spec_id),
+    CONSTRAINT cake_designs_ibfk_1
+        FOREIGN KEY (category_id) REFERENCES categories(id),
+    CONSTRAINT cake_designs_ibfk_2
+        FOREIGN KEY (flavor_id) REFERENCES flavors(id),
+    CONSTRAINT cake_designs_ibfk_3
+        FOREIGN KEY (size_id) REFERENCES sizes(id),
+    CONSTRAINT cake_designs_ibfk_4
         FOREIGN KEY (spec_id) REFERENCES design_specs(id)
-        ON DELETE CASCADE
 );
+
+
+
+ 
+
+
+     
+
+
+
